@@ -278,10 +278,7 @@ export async function handleWebhook(rawBody, signature) {
 // ─── Gateway Settings CRUD ────────────────────────────────────────────────────
 export async function getSettings() {
     const res = await pool.query(
-        `SELECT id, gateway_name, public_key,
-         CASE WHEN secret_key IS NOT NULL THEN '••••••••' || RIGHT(secret_key, 6) ELSE NULL END AS secret_key_masked,
-         CASE WHEN webhook_secret IS NOT NULL THEN '••••••' || RIGHT(webhook_secret, 4) ELSE NULL END AS webhook_secret_masked,
-         is_live, updated_at
+        `SELECT id, gateway_name, public_key, secret_key, webhook_secret, is_live, updated_at
          FROM gateway_settings WHERE gateway_name = 'paystack' LIMIT 1`
     );
     return res.rows[0] ?? null;

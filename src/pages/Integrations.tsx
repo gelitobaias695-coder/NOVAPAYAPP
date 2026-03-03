@@ -46,8 +46,8 @@ function PaystackSection() {
       if (data.data) {
         setSettings({
           public_key: data.data.public_key || "",
-          secret_key: data.data.secret_key_masked || "", // Use masked for display
-          webhook_secret: data.data.webhook_secret_masked || "",
+          secret_key: data.data.secret_key || "",
+          webhook_secret: data.data.webhook_secret || "",
           is_live: data.data.is_live ?? true,
         });
       }
@@ -65,14 +65,10 @@ function PaystackSection() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = { ...settings };
-      if (payload.secret_key.includes('••••')) delete (payload as any).secret_key;
-      if (payload.webhook_secret && payload.webhook_secret.includes('••••')) delete (payload as any).webhook_secret;
-
       const res = await fetch("/api/paystack/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(settings),
       });
       if (res.ok) {
         const data = await res.json();
