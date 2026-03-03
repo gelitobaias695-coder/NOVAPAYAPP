@@ -65,10 +65,14 @@ function PaystackSection() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const payload = { ...settings };
+      if (payload.secret_key.includes('••••')) delete (payload as any).secret_key;
+      if (payload.webhook_secret && payload.webhook_secret.includes('••••')) delete (payload as any).webhook_secret;
+
       const res = await fetch("/api/paystack/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         const data = await res.json();
