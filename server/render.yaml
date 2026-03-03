@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: novapay-backend
+    env: node
+    region: ohio
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false # Pelo painel do Render coloque a URL do seu BD Neon
+      - key: JWT_SECRET
+        sync: false # Pelo painel do Render configure um secret
+      - key: FRONTEND_URL
+        sync: false # Coloque o link da sua Vercel quando criado
+      - key: VITE_APP_URL
+        sync: false
+    disk:
+      name: uploads-data
+      mountPath: /opt/render/project/src/uploads
+      sizeGB: 1

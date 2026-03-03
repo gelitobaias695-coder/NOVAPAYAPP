@@ -1,0 +1,439 @@
+import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { type DBProduct } from "@/hooks/useProducts";
+import { useCheckoutFunnel, useProductBumps, type FunnelOrderBump } from "@/hooks/useFunnels";
+import OrderBumps from "./OrderBumps";
+import {
+    Shield, Lock, CheckCircle, Star, Package,
+    ArrowRight, ChevronDown, MessageCircle, ShoppingCart, Loader2, Zap
+} from "lucide-react";
+import { useTranslation, type Language } from "./translations";
+import { AdaptiveImage } from "@/components/ui/adaptive-image";
+
+const COUNTRIES = [
+    { name: "South Africa", code: "+27" },
+    { name: "Nigeria", code: "+234" },
+    { name: "Kenya", code: "+254" },
+    { name: "Ghana", code: "+233" },
+    { name: "Tanzania", code: "+255" },
+    { name: "Egypt", code: "+20" },
+    { name: "Ethiopia", code: "+251" },
+    { name: "Uganda", code: "+256" },
+    { name: "Zimbabwe", code: "+263" },
+    { name: "Zambia", code: "+260" },
+    { name: "Angola", code: "+244" },
+    { name: "Mozambique", code: "+258" },
+    { name: "Brazil", code: "+55" }
+];
+
+function Step({ n, label, active, done }: { n: number; label: string; active: boolean; done: boolean }) {
+    return (
+        <div className={`flex items-center gap-2 text-sm ${active ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
+            <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold border-2 transition-colors ${done ? "bg-primary border-primary text-primary-foreground" : active ? "border-primary text-primary" : "border-muted-foreground/40"}`}>
+                {done ? <CheckCircle className="h-3.5 w-3.5" /> : n}
+            </span>
+            <span className="hidden sm:inline">{label}</span>
+        </div>
+    );
+}
+
+interface Props { product: DBProduct }
+
+export default function CheckoutDigital({ product }: Props) {
+    const { formatPrice, convertPrice } = useCurrency();
+    const price = parseFloat(product.price);
+    const t = useTranslation((product.checkout_language as Language) || 'pt');
+    const primaryColor = product.primary_color || '#10B981';
+
+    // Bumps: funnel + direct
+    const { funnel } = useCheckoutFunnel(product.id);
+    const { bumps: directBumps } = useProductBumps(product.id);
+    const [bumpExtraTotal, setBumpExtraTotal] = useState(0);
+    const [selectedBumps, setSelectedBumps] = useState<FunnelOrderBump[]>([]);
+    const totalPrice = price + bumpExtraTotal;
+
+    const handleBumpChange = useCallback((extra: number, bumps: FunnelOrderBump[]) => {
+        setBumpExtraTotal(extra);
+        setSelectedBumps(bumps);
+    }, []);
+
+    const [step, setStep] = useState(1);
+    const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+    const [form, setForm] = useState({ name: "", email: "", whatsapp: "", phoneCode: "+27" });
+    const [card, setCard] = useState({ number: "", exp: "", cvv: "" });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loadingInfo, setLoadingInfo] = useState(false);
+    const [orderId, setOrderId] = useState<string | null>(null);
+    const [submitted, setSubmitted] = useState(false);
+    const [analyticsData, setAnalyticsData] = useState<any>({});
+
+    useEffect(() => {
+        const ua = navigator.userAgent;
+        let browser = "Unknown";
+        if (ua.includes("Firefox")) browser = "Firefox";
+        else if (ua.includes("SamsungBrowser")) browser = "Samsung Internet";
+        else if (ua.includes("Opera") || ua.includes("OPR")) browser = "Opera";
+        else if (ua.includes("Trident")) browser = "Internet Explorer";
+        else if (ua.includes("Edge")) browser = "Edge";
+        else if (ua.includes("Chrome")) browser = "Chrome";
+        else if (ua.includes("Safari")) browser = "Safari";
+
+        let device_type = "Desktop";
+        if (/Mobi|Android/i.test(ua)) device_type = "Mobile";
+        else if (/Tablet|iPad/i.test(ua)) device_type = "Tablet";
+
+        const params = new URLSearchParams(window.location.search);
+
+        setAnalyticsData({
+            browser,
+            device_type,
+            user_agent: ua,
+            utm_source: params.get("utm_source") || null,
+            utm_medium: params.get("utm_medium") || null,
+            utm_campaign: params.get("utm_campaign") || null,
+            utm_content: params.get("utm_content") || null,
+            utm_term: params.get("utm_term") || null,
+        });
+
+        if ((window as any).fbq) {
+            (window as any).fbq('track', 'ViewContent', {
+                content_name: product.name,
+                content_ids: [product.id],
+                content_type: 'product',
+                value: price,
+                currency: product.currency || 'ZAR'
+            });
+        }
+    }, [product, price]);
+
+
+    const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+        setForm((f) => ({ ...f, [k]: e.target.value }));
+
+    const setCardVal = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+        setCard((c) => ({ ...c, [k]: e.target.value }));
+
+    const handleCheckout = async () => {
+        if (!form.name || (!form.email && !product.require_whatsapp)) return;
+        setIsSubmitting(true);
+        try {
+            // 1. Criar pedido no Banco de Dados com status 'pending'
+            const url = orderId ? `/api/orders/${orderId}` : '/api/orders';
+            const method = orderId ? 'PUT' : 'POST';
+
+            const resOrder = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    product_id: product.id,
+                    customer_name: form.name || 'Pendente',
+                    customer_email: form.email,
+                    customer_phone: `${form.phoneCode}${form.whatsapp}`,
+                    checkout_type: "digital",
+                    status: "pending", // Status inicial, atualizado no webhook da Paystack
+                    bump_products: selectedBumps.map(b => b.product_id).filter(Boolean),
+                    ...analyticsData
+                })
+            });
+
+            if (!resOrder.ok) throw new Error('Falha ao criar o pedido inicial.');
+
+            const dataOrder = await resOrder.json();
+            const currentOrderId = dataOrder.data?.id || orderId;
+            if (currentOrderId && !orderId) setOrderId(currentOrderId);
+
+            // 2. Comunicar com a API Paystack para renderizar a página de pagamento
+            const resPaystack = await fetch('/api/paystack/initialize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order_id: currentOrderId,
+                    email: form.email || `whatsapp-${form.whatsapp}@novapay.co`, // Email fallback for digital non-email checkouts
+                    currency: product.currency, // Dinâmico pelo produto!
+                    // Redireciona de volta com o success flow
+                    callback_url: `${window.location.origin}/checkout/sucesso?order_id=${currentOrderId}`
+                })
+            });
+
+            if (!resPaystack.ok) {
+                const errData = await resPaystack.json();
+                throw new Error(errData.error || 'Falha ao conectar com o banco de processamento (Gateway).');
+            }
+
+            const paystackData = await resPaystack.json();
+
+            if (paystackData?.data?.authorization_url) {
+                // Redirecionamento para a página segura da Paystack
+                window.location.href = paystackData.data.authorization_url;
+            } else {
+                throw new Error('Não foi possível gerar a URL de autorização.');
+            }
+
+        } catch (err) {
+            console.error('Error in checkout execution', err);
+            alert(err instanceof Error ? err.message : 'Erro ao processar pagamento. Tente novamente.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (submitted) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full text-center space-y-4">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                        <CheckCircle className="h-8 w-8 text-green-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold">Compra Confirmada!</h2>
+                    <p className="text-muted-foreground">Obrigado pela sua compra. Seu acesso será enviado para o seu WhatsApp/Email.</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="checkout-light-mode min-h-screen bg-gray-50 text-zinc-900">
+            {/* Header */}
+            <header className="bg-white border-b border-border shadow-sm sticky top-0 z-50">
+                <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+                    {product.logo_url
+                        ? <img src={product.logo_url} alt="logo" className="h-8 object-contain" />
+                        : <span className="font-bold text-primary text-lg">NovaPay</span>
+                    }
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Lock className="h-3 w-3 text-green-500" />
+                        {t.securePayment}
+                    </div>
+                </div>
+            </header>
+
+            {/* Mobile Order Summary Accordion */}
+            <div className="lg:hidden bg-white border-b border-border">
+                <button
+                    onClick={() => setIsSummaryOpen(!isSummaryOpen)}
+                    className="w-full flex items-center justify-between p-4 bg-muted/30 transition-colors active:bg-muted/50"
+                >
+                    <div className="flex items-center gap-2 text-sm text-primary font-medium" style={{ color: product.primary_color }}>
+                        <ShoppingCart className="h-4 w-4" />
+                        {isSummaryOpen ? 'Esconder resumo' : t.orderSummary}
+                        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isSummaryOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                    <span className="font-bold">{formatPrice(convertPrice(price))}</span>
+                </button>
+                <div
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${isSummaryOpen ? 'max-h-[600px] border-t border-border opacity-100' : 'max-h-0 opacity-0'}`}
+                >
+                    <div className="p-4 space-y-4">
+                        <AdaptiveImage src={product.product_image_url} alt={product.name} />
+                        <div>
+                            <p className="font-semibold">{product.name}</p>
+                            {product.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{product.description}</p>}
+                        </div>
+                        <div className="flex justify-between font-bold border-t border-border pt-3">
+                            <span>{t.total}</span>
+                            <span style={{ color: product.primary_color }}>{formatPrice(convertPrice(price))}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* Left — Form */}
+                <div className="lg:col-span-3 space-y-6">
+                    {/* Steps (Shortened for Digital) */}
+                    <div className="flex items-center gap-4">
+                        <Step n={1} label={t.contactInfo} active={step === 1} done={step > 1} />
+                        <div className="h-px flex-1 bg-border" />
+                        <Step n={2} label={t.payment} active={step === 2} done={false} />
+                    </div>
+
+                    {/* Step 1: Contact */}
+                    {step === 1 && (
+                        <div className="bg-white rounded-xl border border-border p-6 shadow-sm space-y-4 animate-fade-in">
+                            <h2 className="font-semibold text-lg">{t.contactInfo}</h2>
+                            <div className="space-y-3">
+                                <div className="space-y-1">
+                                    <Label>{t.fullName}</Label>
+                                    <Input placeholder={t.namePlaceholder} value={form.name} onChange={set("name")} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label>{product.require_whatsapp ? t.emailOptional : t.email}</Label>
+                                    <Input placeholder={t.emailPlaceholder} type="email" value={form.email} onChange={set("email")} />
+                                </div>
+                                {product.require_whatsapp && (
+                                    <div className="space-y-1">
+                                        <Label className="flex items-center gap-1.5 text-green-600">
+                                            <MessageCircle className="h-4 w-4" />
+                                            {t.whatsapp}
+                                        </Label>
+                                        <div className="flex gap-2">
+                                            <select
+                                                value={form.phoneCode}
+                                                onChange={set("phoneCode")}
+                                                className="flex h-10 w-24 rounded-md border border-gray-300 bg-white text-black px-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                            >
+                                                {COUNTRIES.map(c => <option key={c.code + c.name} value={c.code}>{c.code}</option>)}
+                                            </select>
+                                            <Input placeholder="82 123 4567" value={form.whatsapp} onChange={set("whatsapp")} />
+                                        </div>
+                                        <p className="text-[10px] text-green-600 flex items-center gap-1 mt-1">
+                                            <CheckCircle className="h-3 w-3" /> {t.whatsappNote}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ─── Order Bumps ─────────────────────────────────── */}
+                            {(() => {
+                                const funnelBumps = (funnel?.order_bumps && funnel.order_bumps.length > 0)
+                                    ? funnel.order_bumps
+                                    : (funnel?.order_bump && funnel.order_bump.product_id) ? [funnel.order_bump] : [];
+                                const seen = new Set(funnelBumps.map(b => b.product_id));
+                                const allBumps = [...funnelBumps, ...directBumps.filter(b => !seen.has(b.product_id))]
+                                    .filter(b => b.enabled !== false && b.product_id);
+                                return allBumps.length > 0 ? (
+                                    <div className="rounded-xl border-2 border-dashed p-4 space-y-3"
+                                        style={{ borderColor: primaryColor + '60', backgroundColor: primaryColor + '08' }}>
+                                        <OrderBumps
+                                            bumps={allBumps}
+                                            primaryColor={primaryColor}
+                                            onTotalChange={handleBumpChange}
+                                            orderId={orderId}
+                                            funnelId={funnel?.id}
+                                        />
+                                    </div>
+                                ) : null;
+                            })()}
+                            <Button
+                                disabled={loadingInfo}
+                                className="w-full gap-2 h-12 text-base font-semibold transition-transform active:scale-[0.98]"
+                                onClick={async () => {
+                                    if (!form.name || !form.email) return setStep(2); // allow bypass if skipped but ideally needed
+                                    setLoadingInfo(true);
+                                    try {
+                                        const res = await fetch('/api/orders', {
+                                            method: 'POST',
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                product_id: product.id,
+                                                customer_name: form.name,
+                                                customer_email: form.email,
+                                                customer_phone: `${form.phoneCode}${form.whatsapp}`,
+                                                checkout_type: "digital",
+                                                status: "pending",
+                                                ...analyticsData
+                                            })
+                                        });
+                                        const data = await res.json();
+                                        let currOrderId = orderId;
+                                        if (data.data?.id) {
+                                            setOrderId(data.data.id);
+                                            currOrderId = data.data.id;
+                                        }
+
+                                        if ((window as any).fbq && currOrderId) {
+                                            (window as any).fbq('track', 'InitiateCheckout', {
+                                                content_name: product.name,
+                                                content_ids: [product.id],
+                                                content_type: 'product',
+                                                value: totalPrice,
+                                                currency: product.currency || 'ZAR'
+                                            }, { eventID: currOrderId });
+                                        }
+
+                                    } catch (e) { console.error(e) }
+                                    setLoadingInfo(false);
+                                    setStep(2);
+                                }}
+                                style={{ backgroundColor: product.primary_color }}
+                            >
+                                {loadingInfo ? "Salvando..." : t.continueToPayment} <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* Step 2: Payment */}
+                    {step === 2 && (
+                        <div className="bg-white rounded-xl border border-border p-6 shadow-sm space-y-4 animate-fade-in">
+                            <h2 className="font-semibold text-lg">{t.payment}</h2>
+
+                            {/* Fake Credit Card Form to capture numbers */}
+                            <div className="space-y-3">
+                                <p className="text-sm text-gray-600 mb-2">
+                                    {t.checkoutSecurityMsg}
+                                </p>
+                            </div>
+
+                            {/* Order Summary — Light Mode */}
+                            <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-2 text-sm text-gray-800">
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t.orderSummary}</p>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-700">{t.subtotal}</span>
+                                    <span className="font-semibold text-gray-900">{formatPrice(convertPrice(price))}</span>
+                                </div>
+                                {selectedBumps.map(b => (
+                                    <div key={b.product_id} className="flex justify-between">
+                                        <span className="text-gray-600 flex items-center gap-1">
+                                            <Zap className="h-3 w-3 text-amber-500" /> {b.product_name}
+                                        </span>
+                                        <span className="font-medium text-gray-900">{formatPrice(convertPrice(parseFloat(b.product_price ?? '0')))}</span>
+                                    </div>
+                                ))}
+                                <div className="flex justify-between font-bold text-base border-t border-gray-200 pt-3 mt-2">
+                                    <span className="text-gray-900">{t.totalToPay}</span>
+                                    <span style={{ color: primaryColor }}>{formatPrice(convertPrice(totalPrice))}</span>
+                                </div>
+                            </div>
+                            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+                                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 h-12 bg-muted/50">{t.goBack}</Button>
+                                <Button
+                                    onClick={handleCheckout}
+                                    disabled={isSubmitting}
+                                    className="flex-[2] h-12 text-base font-bold gap-2 transition-transform active:scale-[0.98] shadow-lg shadow-primary/20"
+                                    style={{ backgroundColor: product.primary_color }}
+                                >
+                                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
+                                    {isSubmitting ? "Processando..." : t.confirmAndPay}
+                                </Button>
+                            </div>
+                            <div className="flex justify-center gap-4 text-[10px] text-muted-foreground mt-4">
+                                <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> SSL 256-bit</span>
+                                <span className="flex items-center gap-1"><Shield className="h-3 w-3" /> PCI DSS</span>
+                                <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Paystack</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Right — Order Summary (Desktop only, sticky) */}
+                <div className="hidden lg:block lg:col-span-2">
+                    <div className="bg-white rounded-xl border border-border p-5 sticky top-20 shadow-sm space-y-5">
+                        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">{t.orderSummary}</h3>
+                        <AdaptiveImage src={product.product_image_url} alt={product.name} />
+                        <div>
+                            <p className="font-semibold">{product.name}</p>
+                            {product.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{product.description}</p>}
+                        </div>
+                        <div className="flex justify-between font-bold border-t border-border pt-4 text-lg">
+                            <span>{t.total}</span>
+                            <span style={{ color: product.primary_color }}>{formatPrice(convertPrice(totalPrice))}</span>
+                        </div>
+                        {/* Trust */}
+                        <div className="rounded-lg bg-green-50 border border-green-200 p-3 mt-4">
+                            <p className="text-xs font-semibold text-green-700 flex items-center gap-1.5">
+                                <Shield className="h-4 w-4" /> {t.guarantee}
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground pt-2">
+                            <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
+                            <span className="font-medium text-foreground">4.9</span> · 2,847 {t.reviews}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div >
+    );
+}

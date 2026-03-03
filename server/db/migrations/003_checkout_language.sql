@@ -1,0 +1,1 @@
+ALTER TABLE products ADD COLUMN IF NOT EXISTS checkout_language VARCHAR(10) DEFAULT 'pt';

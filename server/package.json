@@ -1,0 +1,21 @@
+{
+    "name": "novapay-server",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "node --watch index.js"
+    },
+    "dependencies": {
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.5",
+        "dotenv": "^17.3.1",
+        "express": "^4.21.2",
+        "jsonwebtoken": "^9.0.3",
+        "md5": "^2.3.0",
+        "multer": "^2.0.2",
+        "nodemailer": "^8.0.1",
+        "pg": "^8.18.0",
+        "zod": "^4.3.6"
+    }
+}

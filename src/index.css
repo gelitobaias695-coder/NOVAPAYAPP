@@ -1,0 +1,255 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 213 31% 91%;
+
+    --card: 220 40% 13%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 220 40% 13%;
+    --popover-foreground: 213 31% 91%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 213 31% 91%;
+
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 28% 20%;
+    --input: 215 28% 20%;
+    --ring: 160 84% 39%;
+
+    --radius: 0.75rem;
+
+    --chart-1: 160 84% 39%;
+    --chart-2: 200 80% 50%;
+    --chart-3: 45 93% 58%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 215 20% 60%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 28% 14%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 215 28% 16%;
+    --sidebar-ring: 160 84% 39%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 93% 58%;
+    --warning-foreground: 222 47% 11%;
+    --info: 200 80% 50%;
+    --info-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg;
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(160 84% 39%), hsl(174 72% 46%));
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(160 84% 50%), hsl(174 72% 56%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-count-up {
+    animation: countUp 0.8s ease-out;
+  }
+
+  /* Button microinteractions */
+  .btn-interactive {
+    @apply relative overflow-hidden transition-all duration-200;
+  }
+
+  .btn-interactive:hover {
+    @apply shadow-lg shadow-primary/25;
+    transform: translateY(-1px);
+  }
+
+  .btn-interactive:active {
+    transform: scale(0.97);
+  }
+
+  .btn-gradient {
+    background: linear-gradient(135deg, hsl(160 84% 39%), hsl(174 72% 46%));
+    @apply text-white font-semibold shadow-md;
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(135deg, hsl(160 84% 44%), hsl(174 72% 51%));
+    @apply shadow-lg shadow-primary/30;
+    transform: translateY(-1px);
+  }
+
+  .btn-gradient:active {
+    transform: scale(0.97);
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+    20%, 40%, 60%, 80% { transform: translateX(3px); }
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  @keyframes check-pop {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .animate-check-pop {
+    animation: check-pop 0.4s ease-out;
+  }
+
+  @keyframes spin-fast {
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin-fast {
+    animation: spin-fast 0.6s linear infinite;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHECKOUT — Light Mode Scope
+   Forces light mode variables on all checkout pages regardless of the
+   global dark theme. Goal: black text on white background on all inputs.
+═══════════════════════════════════════════════════════════════════════════ */
+.checkout-light-mode {
+  /* Override ALL CSS variables to light values */
+  --background:   0 0% 100%;
+  --foreground:   0 0% 6%;
+  --card:         0 0% 100%;
+  --card-foreground: 0 0% 6%;
+  --popover:      0 0% 100%;
+  --popover-foreground: 0 0% 6%;
+  --muted:        0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  --border:       0 0% 88%;
+  --input:        0 0% 88%;
+  --secondary:    0 0% 95%;
+  --secondary-foreground: 0 0% 10%;
+  --accent:       0 0% 95%;
+  --accent-foreground: 0 0% 10%;
+
+  color-scheme: light;
+  background-color: hsl(var(--background));
+  color: #111111;
+}
+
+/* ── All native inputs, selects and textareas inside checkout ── */
+.checkout-light-mode input,
+.checkout-light-mode select,
+.checkout-light-mode textarea {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #d1d5db !important;
+}
+
+.checkout-light-mode input::placeholder,
+.checkout-light-mode textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+.checkout-light-mode input:focus,
+.checkout-light-mode select:focus,
+.checkout-light-mode textarea:focus {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.18) !important;
+  outline: none !important;
+}
+
+/* ── Override browser autofill blue/dark tint ── */
+.checkout-light-mode input:-webkit-autofill,
+.checkout-light-mode input:-webkit-autofill:hover,
+.checkout-light-mode input:-webkit-autofill:focus,
+.checkout-light-mode input:-webkit-autofill:active,
+.checkout-light-mode textarea:-webkit-autofill,
+.checkout-light-mode select:-webkit-autofill {
+  -webkit-text-fill-color: #000000 !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  background-color: #ffffff !important;
+  caret-color: #000000 !important;
+  transition: background-color 99999s ease-in-out 0s;
+}
+
+/* ── Select option text (for dropdown options) ── */
+.checkout-light-mode select option {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+/* ── Labels ── */
+.checkout-light-mode label {
+  color: #374151 !important;
+}
+
+/* ── Overrides for shadcn Input component ── */
+.checkout-light-mode [data-slot="input"],
+.checkout-light-mode .checkout-input {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
