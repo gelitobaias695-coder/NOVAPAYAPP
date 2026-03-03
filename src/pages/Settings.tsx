@@ -24,7 +24,7 @@ function PaystackSettings() {
     webhook_secret: "",
     is_live: true,
   });
-  const [saved, setSaved] = useState<{ secret_key_masked?: string; public_key?: string; webhook_secret_masked?: string; is_live?: boolean; updated_at?: string } | null>(null);
+  const [saved, setSaved] = useState<{ secret_key?: string; public_key?: string; webhook_secret?: string; is_live?: boolean; updated_at?: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showSecret, setShowSecret] = useState(false);
@@ -88,16 +88,16 @@ function PaystackSettings() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Carregando configurações do Neon...
           </div>
-        ) : saved?.secret_key_masked ? (
+        ) : saved?.secret_key ? (
           <div className="rounded-xl bg-green-50 border border-green-200 p-4 dark:bg-green-950/30 dark:border-green-800">
             <div className="flex items-center gap-2 text-green-700 dark:text-green-400 mb-2">
               <CheckCircle className="h-4 w-4" />
               <span className="text-sm font-semibold">Gateway configurado e ativo</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
-              <div><span className="font-medium">Secret Key:</span> {saved.secret_key_masked}</div>
+              <div><span className="font-medium">Secret Key:</span> {saved.secret_key}</div>
               {saved.public_key && <div><span className="font-medium">Public Key:</span> {saved.public_key.slice(0, 8)}…{saved.public_key.slice(-4)}</div>}
-              {saved.webhook_secret_masked && <div><span className="font-medium">Webhook Secret:</span> {saved.webhook_secret_masked}</div>}
+              {saved.webhook_secret && <div><span className="font-medium">Webhook Secret:</span> {saved.webhook_secret}</div>}
               <div><span className="font-medium">Última atualização:</span> {saved.updated_at ? new Date(saved.updated_at).toLocaleString('pt-BR') : '—'}</div>
             </div>
           </div>
@@ -124,7 +124,7 @@ function PaystackSettings() {
             <Input
               id="paystack-secret"
               type={showSecret ? "text" : "password"}
-              placeholder={saved?.secret_key_masked ? `Atual: ${saved.secret_key_masked} — Deixe em branco para manter` : "sk_live_xxxxxxxxxxxxxxxxxx"}
+              placeholder={saved?.secret_key ? `Atual: ${saved.secret_key} — Deixe em branco para manter` : "sk_live_xxxxxxxxxxxxxxxxxx"}
               value={form.secret_key}
               onChange={e => setForm(f => ({ ...f, secret_key: e.target.value }))}
               className="pr-10"
@@ -153,7 +153,7 @@ function PaystackSettings() {
             <Input
               id="paystack-webhook"
               type={showWebhook ? "text" : "password"}
-              placeholder={saved?.webhook_secret_masked ? `Atual: ${saved.webhook_secret_masked} — Deixe em branco para manter` : "Opcional — use para validar webhooks"}
+              placeholder={saved?.webhook_secret ? `Atual: ${saved.webhook_secret} — Deixe em branco para manter` : "Opcional — use para validar webhooks"}
               value={form.webhook_secret}
               onChange={e => setForm(f => ({ ...f, webhook_secret: e.target.value }))}
               className="pr-10"
