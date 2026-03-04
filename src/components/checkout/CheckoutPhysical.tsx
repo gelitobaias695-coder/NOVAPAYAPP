@@ -70,6 +70,13 @@ export default function CheckoutPhysical({ product }: Props) {
     const [submitted, setSubmitted] = useState(false);
     const [showUpsell, setShowUpsell] = useState(false);
     const [analyticsData, setAnalyticsData] = useState<Record<string, string | null>>({});
+    const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
+
+    useEffect(() => {
+        fetch('/api/exchange-rates').then(res => res.json()).then(data => {
+            if (data?.rates) setExchangeRates(data.rates);
+        }).catch(() => { });
+    }, []);
 
     useEffect(() => {
         const ua = navigator.userAgent;
@@ -453,10 +460,26 @@ export default function CheckoutPhysical({ product }: Props) {
                     {step === 3 && (
                         <div className="bg-white rounded-xl border border-border p-6 shadow-sm space-y-4 animate-fade-in">
                             <h2 className="font-semibold text-lg">{t.payment}</h2>
-                            <div className="space-y-3">
-                                <p className="text-sm text-gray-600 mb-2">
-                                    {t.checkoutSecurityMsg}
-                                </p>
+                            <div className="space-y-3 mb-4">
+                                {product.currency !== 'ZAR' ? (
+                                    <div className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                        <p className="leading-relaxed">
+                                            Para garantir segurança e proteção antifraude, o pagamento será processado em ZAR (Rand Sul-Africano) pela Paystack.<br />
+                                            O valor será automaticamente convertido pelo seu banco no momento da cobrança.<br />
+                                            Você verá o valor final em ZAR na próxima etapa antes de confirmar.
+                                        </p>
+                                        {exchangeRates && exchangeRates[product.currency] && (
+                                            <p className="mt-3 text-gray-900 font-bold">
+                                                💱 Conversão atual:<br />
+                                                <span className="text-primary">{product.currency} {totalPrice.toFixed(2)} = ZAR {(totalPrice / exchangeRates[product.currency]).toFixed(2)}</span>
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        {t.checkoutSecurityMsg}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Order Summary in payment step — Light Mode */}
