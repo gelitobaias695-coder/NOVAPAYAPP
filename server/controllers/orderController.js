@@ -4,7 +4,9 @@ import { sendFacebookServerEvent } from '../services/facebookService.js';
 export async function createOrder(req, res, next) {
     try {
         const orderData = { ...req.body };
-        orderData.client_ip_address = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const forwarded = req.headers['x-forwarded-for'];
+        const ip = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
+        orderData.client_ip_address = ip ? ip.substring(0, 45) : null;
 
         const order = await orderService.createOrder(orderData);
 
@@ -21,7 +23,9 @@ export async function updateOrder(req, res, next) {
     try {
         const orderData = { ...req.body };
         if (!orderData.client_ip_address) {
-            orderData.client_ip_address = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            const forwarded = req.headers['x-forwarded-for'];
+            const ip = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
+            orderData.client_ip_address = ip ? ip.substring(0, 45) : null;
         }
 
         const order = await orderService.updateOrder(req.params.id, orderData);
