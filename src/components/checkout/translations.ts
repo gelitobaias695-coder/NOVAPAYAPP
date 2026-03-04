@@ -42,7 +42,9 @@ export const translations = {
             orderConfirmed: "Pedido Confirmado! 🎉",
             checkEmailAndWhatsapp: "Verifique seu e-mail e WhatsApp para mais detalhes.",
             safePayment: "Pagamento protegido",
-            checkoutSecurityMsg: "🔒 Você será redirecionado para o ambiente 100% seguro para inserir os dados do seu cartão. Suas informações são criptografadas e protegidas via conformidade PCI DSS."
+            checkoutSecurityMsg: "🔒 Você será redirecionado para o ambiente 100% seguro para inserir os dados do seu cartão. Suas informações são criptografadas e protegidas via conformidade PCI DSS.",
+            zarConversionInfo: "Para garantir segurança e proteção antifraude, o pagamento será processado em ZAR (Rand Sul-Africano).\nO valor será automaticamente convertido pelo seu banco na cobrança.\nVocê verá o valor final em ZAR na próxima etapa antes de confirmar.",
+            currentConversion: "Conversão atual"
         }
     },
     en: {
@@ -86,7 +88,9 @@ export const translations = {
             orderConfirmed: "Order Confirmed! 🎉",
             checkEmailAndWhatsapp: "Check your email and WhatsApp for more details.",
             safePayment: "Safe payment",
-            checkoutSecurityMsg: "🔒 You will be redirected to the 100% secure environment to enter your card details. Your information is encrypted and protected via PCI DSS compliance."
+            checkoutSecurityMsg: "🔒 You will be redirected to the 100% secure environment to enter your card details. Your information is encrypted and protected via PCI DSS compliance.",
+            zarConversionInfo: "To ensure security and fraud protection, your payment will be processed in ZAR (South African Rand).\nYour bank will automatically convert the amount when charged.\nYou'll see the final amount in ZAR at the next step before confirming.",
+            currentConversion: "Current conversion"
         }
     },
     fr: {
@@ -130,7 +134,9 @@ export const translations = {
             orderConfirmed: "Commande Confirmée ! 🎉",
             checkEmailAndWhatsapp: "Vérifiez votre e-mail et WhatsApp pour plus de détails.",
             safePayment: "Paiement sécurisé",
-            checkoutSecurityMsg: "🔒 Vous serez redirigé vers l'environnement 100% sécurisé pour saisir les détails de votre carte. Vos informations sont cryptées et protégées via la conformité PCI DSS."
+            checkoutSecurityMsg: "🔒 Vous serez redirigé vers l'environnement 100% sécurisé pour saisir les détails de votre carte. Vos informations sont cryptées et protégées via la conformité PCI DSS.",
+            zarConversionInfo: "Pour assurer la sécurité et la protection contre la fraude, le paiement sera traité en ZAR (Rand sud-africain).\nLe montant sera automatiquement converti par votre banque lors de la facturation.\nVous verrez le montant final en ZAR à la prochaine étape avant de confirmer.",
+            currentConversion: "Conversion actuelle"
         }
     },
     es: {
@@ -174,7 +180,9 @@ export const translations = {
             orderConfirmed: "¡Pedido Confirmado! 🎉",
             checkEmailAndWhatsapp: "Revisa tu correo y WhatsApp para más detalles.",
             safePayment: "Pago seguro",
-            checkoutSecurityMsg: "🔒 Serás redirigido al entorno 100% seguro para ingresar los datos de tu tarjeta. Tu información está encriptada y protegida mediante el cumplimiento de PCI DSS."
+            checkoutSecurityMsg: "🔒 Serás redirigido al entorno 100% seguro para ingresar los datos de tu tarjeta. Tu información está encriptada y protegida mediante el cumplimiento de PCI DSS.",
+            zarConversionInfo: "Para garantizar la seguridad y protección contra el fraude, el pago se procesará en ZAR (Rand Sudafricano).\nEl importe será convertido automáticamente por su banco en el momento del cobro.\nVerá el importe final en ZAR en el siguiente paso antes de confirmar.",
+            currentConversion: "Conversión actual"
         }
     }
 };
