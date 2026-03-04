@@ -155,7 +155,10 @@ export default function CheckoutPhysical({ product }: Props) {
                 })
             });
 
-            if (!resOrder.ok) throw new Error('Falha ao criar o pedido inicial.');
+            if (!resOrder.ok) {
+                const errData = await resOrder.json().catch(() => ({}));
+                throw new Error(`Erro Pedido DB: ${JSON.stringify(errData.errors || errData.error || errData)}`);
+            }
 
             const dataOrder = await resOrder.json();
             const currentOrderId = dataOrder.data?.id || orderId;
