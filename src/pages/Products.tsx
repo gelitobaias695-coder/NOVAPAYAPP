@@ -19,12 +19,11 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import EditProductDialog from "@/components/products/EditProductDialog";
 
+import { formatPriceValue } from "@/lib/currency";
+
 function ProductCard({ product, onEdit, onDelete }: { product: DBProduct; onEdit: (p: DBProduct) => void; onDelete: (id: string) => void }) {
-  const { formatPrice, convertPrice } = useCurrency();
   const { toast } = useToast();
-  const priceZAR = product.currency === "ZAR"
-    ? parseFloat(product.price)
-    : parseFloat(product.price); // price is already stored in the product's own currency
+  const rawPrice = parseFloat(product.price);
 
   return (
     <Card className="animate-fade-in overflow-hidden">
@@ -83,11 +82,8 @@ function ProductCard({ product, onEdit, onDelete }: { product: DBProduct; onEdit
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-lg font-bold">
-              {formatPrice(convertPrice(priceZAR))}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              Original: {product.currency} {product.price}
+            <p className="text-lg font-bold text-primary">
+              {formatPriceValue(rawPrice, product.currency)}
             </p>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, Tag, Zap, TrendingDown } from "lucide-react";
 import { type FunnelOrderBump, logBumpAction } from "@/hooks/useFunnels";
-import { useCurrency } from "@/contexts/CurrencyContext";
+import { formatPriceValue } from "@/lib/currency";
 
 interface OrderBumpItemProps {
     bump: FunnelOrderBump;
@@ -10,10 +10,10 @@ interface OrderBumpItemProps {
     primaryColor: string;
     orderId?: string | null;
     funnelId?: string | null;
+    mainProductCurrency: string;
 }
 
-function OrderBumpItem({ bump, selectedBumpIds, onToggle, primaryColor, orderId, funnelId }: OrderBumpItemProps) {
-    const { formatPrice, convertPrice } = useCurrency();
+function OrderBumpItem({ bump, selectedBumpIds, onToggle, primaryColor, orderId, funnelId, mainProductCurrency }: OrderBumpItemProps) {
     const isSelected = selectedBumpIds.has(bump.id ?? bump.product_id ?? '');
     const originalPrice = parseFloat(bump.product_price ?? '0');
 
@@ -114,10 +114,10 @@ function OrderBumpItem({ bump, selectedBumpIds, onToggle, primaryColor, orderId,
                         {bump.discount_value && bump.discount_value > 0 ? (
                             <>
                                 <p className="text-xs text-muted-foreground line-through">
-                                    {formatPrice(convertPrice(originalPrice))}
+                                    {formatPriceValue(originalPrice, mainProductCurrency)}
                                 </p>
                                 <p className="font-bold text-sm" style={{ color: primaryColor }}>
-                                    {formatPrice(convertPrice(finalPrice))}
+                                    {formatPriceValue(finalPrice, mainProductCurrency)}
                                 </p>
                                 <span className="inline-block text-[10px] bg-green-100 text-green-700 font-bold px-1.5 py-0.5 rounded-full">
                                     -{bump.discount_value}{bump.discount_type === 'percentage' ? '%' : ''}
@@ -125,7 +125,7 @@ function OrderBumpItem({ bump, selectedBumpIds, onToggle, primaryColor, orderId,
                             </>
                         ) : (
                             <p className="font-bold text-sm" style={{ color: primaryColor }}>
-                                {formatPrice(convertPrice(finalPrice))}
+                                {formatPriceValue(finalPrice, mainProductCurrency)}
                             </p>
                         )}
                     </div>
@@ -143,9 +143,10 @@ interface OrderBumpsProps {
     onTotalChange: (extraTotal: number, selectedBumps: FunnelOrderBump[]) => void;
     orderId?: string | null;
     funnelId?: string | null;
+    mainProductCurrency: string;
 }
 
-export default function OrderBumps({ bumps, primaryColor, onTotalChange, orderId, funnelId }: OrderBumpsProps) {
+export default function OrderBumps({ bumps, primaryColor, onTotalChange, orderId, funnelId, mainProductCurrency }: OrderBumpsProps) {
     const [selectedBumpIds, setSelectedBumpIds] = useState<Set<string>>(new Set());
 
     const activeBumps = bumps.filter(b => b.enabled !== false && b.product_id);
@@ -191,6 +192,7 @@ export default function OrderBumps({ bumps, primaryColor, onTotalChange, orderId
                         primaryColor={primaryColor}
                         orderId={orderId}
                         funnelId={funnelId}
+                        mainProductCurrency={mainProductCurrency}
                     />
                 ))}
             </div>
@@ -226,10 +228,10 @@ export interface UpsellBannerProps {
     orderId: string;
     funnelId?: string;
     primaryColor: string;
+    mainProductCurrency: string;
 }
 
-export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor }: UpsellBannerProps) {
-    const { formatPrice, convertPrice } = useCurrency();
+export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor, mainProductCurrency }: UpsellBannerProps) {
     const [dismissed, setDismissed] = useState(false);
 
     if (dismissed) return null;
@@ -323,7 +325,7 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
                 <div className="text-center pt-3 space-y-2">
                     <h2 className="text-xl font-bold text-zinc-900">{upsell.product_name}</h2>
                     <p className="text-3xl font-bold" style={{ color: primaryColor }}>
-                        {formatPrice(convertPrice(price))}
+                        {formatPriceValue(price, mainProductCurrency)}
                         {upsell.is_recurring && cycle && (
                             <span className="text-base font-normal text-muted-foreground ml-1">{cycleLabel[cycle]}</span>
                         )}

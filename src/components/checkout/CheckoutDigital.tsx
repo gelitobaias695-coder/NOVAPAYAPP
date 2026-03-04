@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCurrency } from "@/contexts/CurrencyContext";
+import { formatPriceValue } from "@/lib/currency";
 import { type DBProduct } from "@/hooks/useProducts";
 import { useCheckoutFunnel, useProductBumps, type FunnelOrderBump } from "@/hooks/useFunnels";
 import OrderBumps from "./OrderBumps";
@@ -43,7 +43,7 @@ function Step({ n, label, active, done }: { n: number; label: string; active: bo
 interface Props { product: DBProduct }
 
 export default function CheckoutDigital({ product }: Props) {
-    const { formatPrice, convertPrice } = useCurrency();
+    const format = (p: number) => formatPriceValue(p, product.currency);
     const price = parseFloat(product.price);
     const t = useTranslation((product.checkout_language as Language) || 'pt');
     const primaryColor = product.primary_color || '#10B981';
@@ -224,7 +224,7 @@ export default function CheckoutDigital({ product }: Props) {
                         {isSummaryOpen ? 'Esconder resumo' : t.orderSummary}
                         <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isSummaryOpen ? 'rotate-180' : ''}`} />
                     </div>
-                    <span className="font-bold">{formatPrice(convertPrice(price))}</span>
+                    <span className="font-bold">{format(price)}</span>
                 </button>
                 <div
                     className={`overflow-hidden transition-all duration-300 ease-in-out ${isSummaryOpen ? 'max-h-[600px] border-t border-border opacity-100' : 'max-h-0 opacity-0'}`}
@@ -237,7 +237,7 @@ export default function CheckoutDigital({ product }: Props) {
                         </div>
                         <div className="flex justify-between font-bold border-t border-border pt-3">
                             <span>{t.total}</span>
-                            <span style={{ color: product.primary_color }}>{formatPrice(convertPrice(price))}</span>
+                            <span style={{ color: product.primary_color }}>{format(price)}</span>
                         </div>
                     </div>
                 </div>
@@ -306,6 +306,7 @@ export default function CheckoutDigital({ product }: Props) {
                                             onTotalChange={handleBumpChange}
                                             orderId={orderId}
                                             funnelId={funnel?.id}
+                                            mainProductCurrency={product.currency}
                                         />
                                     </div>
                                 ) : null;
@@ -375,19 +376,19 @@ export default function CheckoutDigital({ product }: Props) {
                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t.orderSummary}</p>
                                 <div className="flex justify-between">
                                     <span className="text-gray-700">{t.subtotal}</span>
-                                    <span className="font-semibold text-gray-900">{formatPrice(convertPrice(price))}</span>
+                                    <span className="font-semibold text-gray-900">{format(price)}</span>
                                 </div>
                                 {selectedBumps.map(b => (
                                     <div key={b.product_id} className="flex justify-between">
                                         <span className="text-gray-600 flex items-center gap-1">
                                             <Zap className="h-3 w-3 text-amber-500" /> {b.product_name}
                                         </span>
-                                        <span className="font-medium text-gray-900">{formatPrice(convertPrice(parseFloat(b.product_price ?? '0')))}</span>
+                                        <span className="font-medium text-gray-900">{format(parseFloat(b.product_price ?? '0'))}</span>
                                     </div>
                                 ))}
                                 <div className="flex justify-between font-bold text-base border-t border-gray-200 pt-3 mt-2">
                                     <span className="text-gray-900">{t.totalToPay}</span>
-                                    <span style={{ color: primaryColor }}>{formatPrice(convertPrice(totalPrice))}</span>
+                                    <span style={{ color: primaryColor }}>{format(totalPrice)}</span>
                                 </div>
                             </div>
                             <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
@@ -422,7 +423,7 @@ export default function CheckoutDigital({ product }: Props) {
                         </div>
                         <div className="flex justify-between font-bold border-t border-border pt-4 text-lg">
                             <span>{t.total}</span>
-                            <span style={{ color: product.primary_color }}>{formatPrice(convertPrice(totalPrice))}</span>
+                            <span style={{ color: product.primary_color }}>{format(totalPrice)}</span>
                         </div>
                         {/* Trust */}
                         <div className="rounded-lg bg-green-50 border border-green-200 p-3 mt-4">
