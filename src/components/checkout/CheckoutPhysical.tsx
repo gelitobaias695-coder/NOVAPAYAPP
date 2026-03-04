@@ -459,27 +459,53 @@ export default function CheckoutPhysical({ product }: Props) {
                     {/* Step 3: Payment */}
                     {step === 3 && (
                         <div className="bg-white rounded-xl border border-border p-6 shadow-sm space-y-4 animate-fade-in">
-                            <h2 className="font-semibold text-lg">{t.payment}</h2>
-                            <div className="space-y-3 mb-4">
-                                {product.currency !== 'ZAR' ? (
-                                    <div className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                        <p className="leading-relaxed">
-                                            Para garantir segurança e proteção antifraude, o pagamento será processado em ZAR (Rand Sul-Africano) pela Paystack.<br />
-                                            O valor será automaticamente convertido pelo seu banco no momento da cobrança.<br />
-                                            Você verá o valor final em ZAR na próxima etapa antes de confirmar.
-                                        </p>
-                                        {exchangeRates && exchangeRates[product.currency] && (
-                                            <p className="mt-3 text-gray-900 font-bold">
-                                                💱 Conversão atual:<br />
-                                                <span className="text-primary">{product.currency} {totalPrice.toFixed(2)} = ZAR {(totalPrice / exchangeRates[product.currency]).toFixed(2)}</span>
+                            <div className="mb-2">
+                                <h2 className="font-bold text-xl">{t.payment}</h2>
+                                <p className="text-gray-500 text-sm mt-0.5">All transactions are secure and encrypted.</p>
+                            </div>
+
+                            <div className="border border-blue-600 rounded-lg overflow-hidden bg-white shadow-sm ring-1 flex flex-col ring-blue-600 ring-opacity-50 mb-4">
+                                <div className="flex items-center justify-between p-4 bg-blue-50/50">
+                                    <span className="font-semibold text-zinc-900">{t.payment}</span>
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                        <div className="bg-white border border-gray-200 rounded flex items-center justify-center p-1 w-[38px] h-[24px]">
+                                            <svg viewBox="0 0 24 15" width="24" height="15" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7.5" r="7" fill="#EA001B" /><circle cx="17" cy="7.5" r="7" fill="#FFA200" fillOpacity="0.8" /></svg>
+                                        </div>
+                                        <div className="bg-white border border-gray-200 rounded flex items-center justify-center p-1 w-[38px] h-[24px]">
+                                            <svg viewBox="0 0 32 10" width="28" height="10" xmlns="http://www.w3.org/2000/svg"><path fill="#1434CB" d="M12.6,0l-1.3,8.7h2.7l1.3-8.7H12.6z M20.3,0.2c-0.6-0.2-1.5-0.4-2.6-0.4c-2.9,0-4.9,1.5-4.9,3.6 c0,1.6,1.4,2.4,2.5,3c1.1,0.5,1.5,0.9,1.5,1.4c0,0.7-0.9,1.1-1.7,1.1c-1.1,0-1.8-0.2-2.7-0.5l-0.4-1.8c0,0,0,0,0,0 c0,0-1,4.7-1,4.7h2.8c0.8,0,1.4-0.1,2.8-0.4c3.1-0.6,5.1-2.1,5.1-4.2c0-1.2-0.8-2.2-2.5-3c-1-0.5-1.6-0.8-1.6-1.3 c0-0.4,0.5-0.9,1.6-0.9c0.9,0,1.6,0.2,2.2,0.4L20.3,0.2z M25.8,0l-2.2,6l-0.8-4.2c-0.2-0.8-0.8-1.4-1.6-1.6l-3-0.2L18,1.4 c0.6,0.1,1.2,0.4,1.8,0.7c0.3,0.2,0.4,0.4,0.5,0.8l1.6,5.8h2.9L28.7,0H25.8z M8,0l-2,6.1L4.8,1.2C4.6,0.5,4-0.1,3.3-0.1L0,0l0,0 c0.7,0.2,1.5,0.4,2,0.7c0.3,0.2,0.4,0.6,0.6,1.2l1.6,6.8h2.8L10.9,0H8z" /></svg>
+                                        </div>
+                                        <div className="bg-white border border-gray-200 rounded flex items-center justify-center w-[38px] h-[24px]" title="MTN Mobile Money">
+                                            <div className="bg-[#ffcc00] w-full h-full rounded-[2px] flex items-center justify-center text-[7px] font-bold text-[#004e6e] leading-[1]">MTN<br />MoMo</div>
+                                        </div>
+                                        <div className="bg-white border border-gray-200 rounded flex items-center justify-center text-[10px] font-bold text-blue-600 w-[30px] h-[24px]" title="Airtel, M-Pesa, Ozow, Amex">
+                                            +5
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50/80 p-5 flex flex-col items-center justify-center text-center border-t border-gray-200">
+                                    <svg className="h-10 w-10 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    <div className="w-full max-w-sm">
+                                        {product.currency !== 'ZAR' ? (
+                                            <div className="text-sm text-gray-700">
+                                                <p className="leading-relaxed">
+                                                    Para garantir segurança e proteção antifraude, o pagamento será processado em ZAR (Rand Sul-Africano).<br />
+                                                    O valor será automaticamente convertido pelo seu banco na cobrança.<br />
+                                                    Você verá o valor final em ZAR na próxima etapa antes de confirmar.
+                                                </p>
+                                                {exchangeRates && exchangeRates[product.currency] && (
+                                                    <p className="mt-3 text-gray-900 font-bold bg-white p-2.5 rounded border border-gray-200 inline-block shadow-sm">
+                                                        💱 Conversão atual:<br />
+                                                        <span className="text-primary mt-1 inline-block" style={{ color: product.primary_color }}>{product.currency} {totalPrice.toFixed(2)} = ZAR {(totalPrice / exchangeRates[product.currency]).toFixed(2)}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-gray-600 font-medium">
+                                                {t.checkoutSecurityMsg}
                                             </p>
                                         )}
                                     </div>
-                                ) : (
-                                    <p className="text-sm text-gray-600 mb-2">
-                                        {t.checkoutSecurityMsg}
-                                    </p>
-                                )}
+                                </div>
                             </div>
 
                             {/* Order Summary in payment step — Light Mode */}
@@ -519,7 +545,7 @@ export default function CheckoutPhysical({ product }: Props) {
                             <div className="flex justify-center gap-4 text-[10px] text-muted-foreground mt-4">
                                 <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> SSL 256-bit</span>
                                 <span className="flex items-center gap-1"><Shield className="h-3 w-3" /> PCI DSS</span>
-                                <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Paystack</span>
+                                <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Secure Checkout</span>
                             </div>
                         </div>
                     )}

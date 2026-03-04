@@ -42,7 +42,7 @@ export const translations = {
             orderConfirmed: "Pedido Confirmado! 🎉",
             checkEmailAndWhatsapp: "Verifique seu e-mail e WhatsApp para mais detalhes.",
             safePayment: "Pagamento protegido",
-            checkoutSecurityMsg: "🔒 Você será redirecionado para o ambiente 100% seguro da Paystack para inserir os dados do seu cartão. Suas informações são criptografadas e protegidas via conformidade PCI DSS."
+            checkoutSecurityMsg: "🔒 Você será redirecionado para o ambiente 100% seguro para inserir os dados do seu cartão. Suas informações são criptografadas e protegidas via conformidade PCI DSS."
         }
     },
     en: {
@@ -86,7 +86,7 @@ export const translations = {
             orderConfirmed: "Order Confirmed! 🎉",
             checkEmailAndWhatsapp: "Check your email and WhatsApp for more details.",
             safePayment: "Safe payment",
-            checkoutSecurityMsg: "🔒 You will be redirected to the 100% secure Paystack environment to enter your card details. Your information is encrypted and protected via PCI DSS compliance."
+            checkoutSecurityMsg: "🔒 You will be redirected to the 100% secure environment to enter your card details. Your information is encrypted and protected via PCI DSS compliance."
         }
     },
     fr: {
@@ -130,7 +130,7 @@ export const translations = {
             orderConfirmed: "Commande Confirmée ! 🎉",
             checkEmailAndWhatsapp: "Vérifiez votre e-mail et WhatsApp pour plus de détails.",
             safePayment: "Paiement sécurisé",
-            checkoutSecurityMsg: "🔒 Vous serez redirigé vers l'environnement 100% sécurisé de Paystack pour saisir les détails de votre carte. Vos informations sont cryptées et protégées via la conformité PCI DSS."
+            checkoutSecurityMsg: "🔒 Vous serez redirigé vers l'environnement 100% sécurisé pour saisir les détails de votre carte. Vos informations sont cryptées et protégées via la conformité PCI DSS."
         }
     },
     es: {
@@ -174,7 +174,7 @@ export const translations = {
             orderConfirmed: "¡Pedido Confirmado! 🎉",
             checkEmailAndWhatsapp: "Revisa tu correo y WhatsApp para más detalles.",
             safePayment: "Pago seguro",
-            checkoutSecurityMsg: "🔒 Serás redirigido al entorno 100% seguro de Paystack para ingresar los datos de tu tarjeta. Tu información está encriptada y protegida mediante el cumplimiento de PCI DSS."
+            checkoutSecurityMsg: "🔒 Serás redirigido al entorno 100% seguro para ingresar los datos de tu tarjeta. Tu información está encriptada y protegida mediante el cumplimiento de PCI DSS."
         }
     }
 };
