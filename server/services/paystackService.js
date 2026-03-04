@@ -294,7 +294,7 @@ export async function saveSettings({ secret_key, public_key, webhook_secret, is_
              webhook_secret = COALESCE(NULLIF($3, ''), gateway_settings.webhook_secret),
              is_live = $4,
              updated_at = NOW()
-         RETURNING id, gateway_name, public_key, is_live, updated_at`,
+         RETURNING id, gateway_name, public_key, secret_key, webhook_secret, is_live, updated_at`,
         [secret_key || null, public_key || null, webhook_secret || null, is_live ?? true]
     );
     return res.rows[0];
