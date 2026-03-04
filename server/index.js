@@ -4,6 +4,8 @@ import * as dotenv from 'dotenv';
 import pg from 'pg';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
+import { getRates } from './services/exchangeRatesService.js';
 import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import funnelsRouter from './routes/funnels.js';
@@ -81,41 +83,10 @@ app.get('/api/db-test', async (req, res) => {
   }
 });
 
-// ── Exchange Rates ────────────────────────────────────────────────────────────
-const MOCK_API_URL = "https://api.exchangerate-api.com/v4/latest/ZAR";
-let cachedRates = null;
-let cacheTimestamp = null;
-const CACHE_DURATION = 1000 * 60 * 60;
-
-const FALLBACK_RATES = { ZAR: 1, KES: 7.07, TZS: 141.52, NGN: 83.15, GHS: 0.81 };
-
 app.get('/api/exchange-rates', async (req, res) => {
   try {
-    const now = Date.now();
-    if (cachedRates && cacheTimestamp && (now - cacheTimestamp < CACHE_DURATION)) {
-      return res.json({ base: 'ZAR', rates: cachedRates, source: 'cache' });
-    }
-    let fetchedRates = FALLBACK_RATES;
-    try {
-      const response = await fetch(MOCK_API_URL);
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.rates) {
-          fetchedRates = {
-            ZAR: data.rates.ZAR || 1,
-            KES: data.rates.KES || FALLBACK_RATES.KES,
-            TZS: data.rates.TZS || FALLBACK_RATES.TZS,
-            NGN: data.rates.NGN || FALLBACK_RATES.NGN,
-            GHS: data.rates.GHS || FALLBACK_RATES.GHS,
-          };
-        }
-      }
-    } catch (e) {
-      console.warn("Failed to fetch fresh rates, using fallback.");
-    }
-    cachedRates = fetchedRates;
-    cacheTimestamp = now;
-    res.json({ base: 'ZAR', rates: cachedRates, source: 'api' });
+    const rates = await getRates();
+    res.json({ base: 'ZAR', rates, source: 'api' });
   } catch (error) {
     console.error('Error in exchange-rates API:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import * as utmifyService from './utmifyService.js';
 import * as emailService from './emailService.js';
 import * as facebookService from './facebookService.js';
+import { convertToZar } from './exchangeRatesService.js';
 
 const API_URL = 'https://api.paystack.co';
 
@@ -50,7 +51,9 @@ export async function initializePayment({ order_id, email, callback_url }) {
     if (orderRes.rowCount === 0) throw new Error('Order not found');
     const order = orderRes.rows[0];
 
-    const amountInCents = Math.round(parseFloat(order.price) * 100);
+    // order.amount contains the real total (including bumps) whereas p.price is only the base product price
+    const convertedAmount = await convertToZar(parseFloat(order.amount), order.currency);
+    const amountInCents = Math.round(convertedAmount * 100);
     const finalCallbackUrl = callback_url || `${process.env.APP_URL || 'http://localhost:8080'}/checkout/success?order_id=${order_id}`;
 
     const response = await fetch(`${API_URL}/transaction/initialize`, {
@@ -59,7 +62,7 @@ export async function initializePayment({ order_id, email, callback_url }) {
         body: JSON.stringify({
             email: email || order.customer_email || 'customer@novapay.co',
             amount: amountInCents,
-            currency: order.currency,   // Dynamic: ZAR, NGN, GHS, KES, etc.
+            currency: 'ZAR',   // Force ZAR for the gateway
             callback_url: finalCallbackUrl,
             metadata: {
                 order_id: order.id,
@@ -130,7 +133,8 @@ export async function chargeUpsell({ order_id, upsell_product_id, email }) {
 
     if (!authCode) throw new Error('No authorization code (card token) found for One-Click Upsell. The customer needs to complete a regular checkout first.');
 
-    const amountInCents = Math.round(parseFloat(product.price) * 100);
+    const convertedAmount = await convertToZar(parseFloat(product.price), product.currency);
+    const amountInCents = Math.round(convertedAmount * 100);
 
     const response = await fetch(`${API_URL}/transaction/charge_authorization`, {
         method: 'POST',
@@ -139,7 +143,7 @@ export async function chargeUpsell({ order_id, upsell_product_id, email }) {
             authorization_code: authCode,
             email: customerEmail,
             amount: amountInCents,
-            currency: product.currency,          // Dynamic currency from product
+            currency: 'ZAR',          // Force ZAR for the backend gateway proxy
             metadata: {
                 order_id,
                 upsell_product_id,
