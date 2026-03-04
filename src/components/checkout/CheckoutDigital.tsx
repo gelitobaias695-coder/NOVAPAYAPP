@@ -374,10 +374,10 @@ export default function CheckoutDigital({ product }: Props) {
                                 <p className="text-gray-500 text-sm mt-0.5">All transactions are secure and encrypted.</p>
                             </div>
 
-                            <div className="border border-blue-600 rounded-lg overflow-hidden bg-white shadow-sm ring-1 flex flex-col ring-blue-600 ring-opacity-50 mb-4">
-                                <div className="flex items-center justify-between p-4 bg-blue-50/50">
-                                    <span className="font-semibold text-zinc-900">{t.payment}</span>
-                                    <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="border-2 border-primary rounded-lg overflow-hidden bg-white shadow-sm ring-4 flex flex-col ring-primary/10 mb-4 transition-all" style={{ borderColor: product.primary_color }}>
+                                <div className="flex items-center justify-between p-3.5 bg-gray-50/50">
+                                    <span className="font-semibold text-zinc-900 hidden sm:block">{t.payment}</span>
+                                    <div className="flex items-center gap-1.5 shrink-0 justify-center w-full sm:w-auto">
                                         <div className="bg-white border border-gray-200 rounded flex items-center justify-center p-1 w-[38px] h-[24px]">
                                             <svg viewBox="0 0 24 15" width="24" height="15" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7.5" r="7" fill="#EA001B" /><circle cx="17" cy="7.5" r="7" fill="#FFA200" fillOpacity="0.8" /></svg>
                                         </div>
@@ -387,12 +387,19 @@ export default function CheckoutDigital({ product }: Props) {
                                         <div className="bg-white border border-gray-200 rounded flex items-center justify-center w-[38px] h-[24px]" title="MTN Mobile Money">
                                             <div className="bg-[#ffcc00] w-full h-full rounded-[2px] flex items-center justify-center text-[7px] font-bold text-[#004e6e] leading-[1]">MTN<br />MoMo</div>
                                         </div>
-                                        <div className="bg-white border border-gray-200 rounded flex items-center justify-center text-[10px] font-bold text-blue-600 w-[30px] h-[24px]" title="Airtel, M-Pesa, Ozow, Amex">
-                                            +5
+                                        <div className="bg-white border border-gray-200 rounded flex items-center justify-center p-0.5 w-[38px] h-[24px]" title="Airtel Money">
+                                            <svg viewBox="0 0 100 100" width="22" height="22" xmlns="http://www.w3.org/2000/svg"><path fill="#FF0000" d="M79.4,32C71.3,16,56.5,5.6,39,4.2C15.4,2.3-1.6,24,0.1,47.7c1.3,17.4,13.2,33,30.3,38c14,4.1,28.8,0,39.6-9.6 c2.7-2.4,1.4-7-2.1-7.8c-1.8-0.4-3.8,0-5.3,1.1c-8.4,6.5-20.1,9.4-30.8,6.2c-12.8-3.9-22-16-22.9-29.4 c-1.2-16.7,11.5-31.5,28.1-32.9c12.3-1.1,23.3,6.2,29,17.1c3.1,6,3.6,13,1.4,19.3c-2.9,8.4-10.4,14-19.3,14H46 c-4.2,0-7.6-3.4-7.6-7.6v-2.1c0-4.2,3.4-7.6,7.6-7.6h8.7c2.1,0,3.8-1.7,3.8-3.8s-1.7-3.8-3.8-3.8H46c-8.4,0-15.2,6.8-15.2,15.2 v2.1c0,8.4,6.8,15.2,15.2,15.2h2.5c12.4,0,23.1-7.8,27.1-19.6C78.4,47.8,77.9,39.2,79.4,32z" /></svg>
+                                        </div>
+                                        <div className="bg-white border border-gray-200 rounded flex items-center justify-center w-[38px] h-[24px]" title="M-Pesa">
+                                            <div className="bg-[#41b549] w-full h-full rounded-[2px] flex items-center justify-center text-[7px] font-bold text-white tracking-tighter">M-PESA</div>
+                                        </div>
+                                        <div className="bg-white border border-gray-200 rounded flex items-center justify-center text-[10px] font-bold text-blue-600 px-1.5 h-[24px]" title="Ozow, Amex">
+                                            +3
                                         </div>
                                     </div>
                                 </div>
                                 <div className="bg-gray-50/80 p-5 flex flex-col items-center justify-center text-center border-t border-gray-200">
+
                                     <svg className="h-10 w-10 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     <div className="w-full max-w-sm">
                                         {product.currency !== 'ZAR' ? (
