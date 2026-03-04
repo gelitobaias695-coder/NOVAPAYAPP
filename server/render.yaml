@@ -19,5 +19,5 @@ services:
         sync: false
     disk:
       name: uploads-data
-      mountPath: /opt/render/project/src/uploads
+      mountPath: /opt/render/project/src/server/uploads
       sizeGB: 1

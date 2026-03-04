@@ -27,6 +27,15 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     favicon_url: data.data.favicon_url,
                     logo_url: data.data.logo_url,
                 });
+                if (data.data.favicon_url) {
+                    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+                    if (!link) {
+                        link = document.createElement('link');
+                        link.rel = 'icon';
+                        document.head.appendChild(link);
+                    }
+                    link.href = data.data.favicon_url;
+                }
             }
         } catch { }
     };

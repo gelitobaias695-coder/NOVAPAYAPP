@@ -2,13 +2,18 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
 import {
     getProducts, getProductById, addProduct, updateProduct, deleteProduct,
     getProductBumps, addProductBump, removeProductBump, syncProductBumps
 } from '../controllers/productController.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadDir = path.join(__dirname, '..', 'uploads');
+
 const storage = multer.diskStorage({
-    destination: 'uploads/',
+    destination: uploadDir,
     filename: (req, file, cb) => {
         const uniqueSuffix = crypto.randomUUID();
         const ext = path.extname(file.originalname);

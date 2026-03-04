@@ -8,6 +8,9 @@ const __dirname = dirname(__filename);
 
 // Always load .env from the server/ directory
 dotenv.config({ path: join(__dirname, '..', '.env') });
+if (process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = process.env.DATABASE_URL.replace('?sslmode=require', '?sslmode=verify-full');
+}
 
 const { Pool } = pg;
 

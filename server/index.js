@@ -23,6 +23,9 @@ const __dirname = path.dirname(__filename);
 
 // Load environment variables from server/.env (works regardless of cwd)
 dotenv.config({ path: path.join(__dirname, '.env') });
+if (process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL.replace('?sslmode=require', '?sslmode=verify-full');
+}
 
 const app = express();
 app.use(cors());
