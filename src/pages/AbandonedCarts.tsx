@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Mail, Send, Clock } from "lucide-react";
 
 export default function AbandonedCarts() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [abandoned, setAbandoned] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -13,6 +14,7 @@ export default function AbandonedCarts() {
       .then(data => {
         const orders = data.data || [];
         // Consider pending as abandoned
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pending = orders.filter((o: any) => o.status === 'pending');
         setAbandoned(pending);
       })

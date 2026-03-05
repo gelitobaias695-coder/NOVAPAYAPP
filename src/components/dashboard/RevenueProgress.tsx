@@ -14,6 +14,7 @@ export default function RevenueProgress() {
                     const s = data.data;
                     let rev = 0;
                     if (rates && s.revenueByCurrency) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         s.revenueByCurrency.forEach((r: any) => {
                             const rate = rates[r.currency] || 1;
                             rev += parseFloat(r.total) / rate;

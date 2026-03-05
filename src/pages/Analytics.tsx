@@ -6,6 +6,7 @@ import { Smartphone, Monitor, Globe, Target } from "lucide-react";
 const COLORS = ["hsl(160, 84%, 39%)", "hsl(200, 80%, 50%)", "hsl(45, 93%, 58%)", "hsl(280, 65%, 60%)", "hsl(340, 75%, 55%)"];
 
 export default function Analytics() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,6 +51,7 @@ export default function Analytics() {
                 </thead>
                 <tbody>
                   {data.geoData?.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-muted-foreground">Sem dados suficientes</td></tr>}
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {data.geoData?.map((g: any, i: number) => {
                     const conv = g.checkouts > 0 ? ((g.approved / g.checkouts) * 100).toFixed(1) : '0.0';
                     return (
@@ -85,6 +87,7 @@ export default function Analytics() {
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     labelLine={false}
                   >
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {data.browserData?.map((_: any, index: number) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -113,6 +116,7 @@ export default function Analytics() {
                 </thead>
                 <tbody>
                   {data.utmData?.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-muted-foreground">Nenhuma UTM capturada até o momento.</td></tr>}
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {data.utmData?.map((u: any, i: number) => {
                     const conv = u.checkouts > 0 ? ((u.approved / u.checkouts) * 100).toFixed(1) : '0.0';
                     const label = [u.utm_source, u.utm_medium, u.utm_campaign].filter(Boolean).join(' / ') || 'Tráfego Direto';

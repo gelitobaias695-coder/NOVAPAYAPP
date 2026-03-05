@@ -203,6 +203,7 @@ function PaystackSettings() {
 // ─── Platform Favicon Settings ────────────────────────────────────────────────
 function FaviconSettings() {
   const { toast } = useToast();
+  const { refreshSettings } = usePlatform();
   const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -231,12 +232,12 @@ function FaviconSettings() {
       setFaviconUrl(json.data.favicon_url);
       setFile(null);
       // reload favicon manually
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
       if (link) link.href = json.data.favicon_url;
       refreshSettings(); // update context globally
       toast({ title: "Favicon atualizado com sucesso!" });
-    } catch (e: any) {
-      toast({ title: "Falha no Upload", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Falha no Upload", description: e instanceof Error ? e.message : "Erro desconhecido", variant: "destructive" });
     } finally {
       setIsUploading(false);
     }
@@ -297,8 +298,8 @@ function LogoSettings() {
       setFile(null);
 
       toast({ title: "Logotipo atualizado com sucesso!" });
-    } catch (e: any) {
-      toast({ title: "Falha no Upload", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Falha no Upload", description: e instanceof Error ? e.message : "Erro desconhecido", variant: "destructive" });
     } finally {
       setIsUploading(false);
     }
@@ -434,7 +435,7 @@ function GeneralSettings() {
       .catch(() => { });
   }, []);
 
-  const updateSetting = async (key: string, value: any) => {
+  const updateSetting = async (key: string, value: number | boolean) => {
     try {
       if (key === 'maintenance_mode') setMaintenanceMode(value);
       if (key === 'ip_country_detect') setIpDetect(value);
@@ -533,8 +534,8 @@ function SecuritySettings() {
       toast({ title: "Sucesso!", description: data.message });
       setCurrentPassword("");
       setNewPassword("");
-    } catch (err: any) {
-      toast({ title: "Erro na Segurança", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Erro na Segurança", description: err instanceof Error ? err.message : "Erro desconhecido", variant: "destructive" });
       throw err;
     }
   };

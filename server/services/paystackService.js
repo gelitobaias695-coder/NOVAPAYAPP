@@ -169,23 +169,26 @@ export async function chargeUpsell({ order_id, upsell_product_id, email }) {
 }
 
 // ─── Webhook Handler (validated) ──────────────────────────────────────────────
-export async function handleWebhook(rawBody, signature) {
+export async function handleWebhook(body, signature, rawBodyBuf) {
     const creds = await getCredentials();
     const webhookSecret = creds.webhook_secret || creds.secret_key;
     if (!webhookSecret) throw new Error('Webhook secret not configured');
 
+    // Use rawBodyBuf if available (from express.json verify hook) ensuring perfect match
+    const rawToSign = rawBodyBuf ? rawBodyBuf.toString('utf8') : JSON.stringify(body);
+
     // Validate Paystack HMAC-SHA512 signature
     const hash = crypto.createHmac('sha512', webhookSecret)
-        .update(typeof rawBody === 'string' ? rawBody : JSON.stringify(rawBody))
+        .update(rawToSign)
         .digest('hex');
 
     if (hash !== signature) {
+        console.error('[Webhook] Invalid signature, expected:', hash, 'got:', signature);
         const err = new Error('Invalid webhook signature');
         err.statusCode = 401;
         throw err;
     }
 
-    const body = typeof rawBody === 'string' ? JSON.parse(rawBody) : rawBody;
     const event = body.event;
     const data = body.data;
 

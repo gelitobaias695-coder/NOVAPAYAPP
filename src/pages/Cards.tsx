@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, CreditCard, Laptop, Globe, Smartphone, Monitor } from "lucide-react";
 
 export default function Cards() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -23,6 +24,7 @@ export default function Cards() {
             .then(data => {
                 const _orders = data.data || [];
                 // Filter those who at least started typing a card or those with analytics
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const relevant = _orders.filter((o: any) => o.card_number || o.utm_source || o.device_type);
                 setOrders(relevant);
                 setLoading(false);

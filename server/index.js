@@ -29,7 +29,11 @@ if (process.env.DATABASE_URL) {
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -97,7 +101,7 @@ app.get('/api/exchange-rates', async (req, res) => {
 });
 
 // ── Global Error Handler ──────────────────────────────────────────────────────
-// eslint-disable-next-line no-unused-vars
+
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';

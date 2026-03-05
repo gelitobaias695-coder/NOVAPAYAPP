@@ -37,7 +37,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     link.href = data.data.favicon_url;
                 }
             }
-        } catch { }
+        } catch (e) {
+            console.error("Failed to refresh settings", e);
+        }
     };
 
     useEffect(() => {

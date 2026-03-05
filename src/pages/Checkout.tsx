@@ -77,7 +77,7 @@ function SocialProof() {
       setCurrentProof((c) => (c + 1) % proofs.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [proofs.length]);
 
   const proof = proofs[currentProof];
 
@@ -194,10 +194,10 @@ export default function Checkout() {
               <button
                 onClick={() => setStep(i + 1)}
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${step === i + 1
-                    ? "bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/30"
-                    : step > i + 1
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
+                  ? "bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/30"
+                  : step > i + 1
+                    ? "bg-primary/20 text-primary"
+                    : "bg-muted text-muted-foreground"
                   }`}
               >
                 {step > i + 1 ? <CheckCircle className="h-4 w-4" /> : i + 1}

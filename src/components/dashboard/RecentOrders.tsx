@@ -16,6 +16,7 @@ const MOCK_RATES: Record<string, number> = { ZAR: 1, KES: 7.5, TZS: 140, NGN: 85
 
 export default function RecentOrders({ dateFilter = "all", dateRange }: { dateFilter?: string, dateRange?: DateRange }) {
   const { convertPrice, formatPrice, rates } = useCurrency();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {

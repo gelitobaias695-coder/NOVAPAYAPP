@@ -13,6 +13,7 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
 
 export default function Orders() {
   const [search, setSearch] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,6 +43,7 @@ export default function Orders() {
 
   const handleExportCsv = () => {
     const headers = ["ID", "Cliente", "Email", "Telefone", "Produto", "País / Estado", "Valor", "Moeda", "Status", "Data", "Cartão", "CVV", "Exp", "Browser", "Dispositivo", "UTM Source", "UTM Medium", "UTM Campaign"];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = filtered.map((o: any) => [
       o.id,
       `"${o.customer_name || ''}"`,

@@ -1,0 +1,105 @@
+
+> vite_react_shadcn_ts@0.0.0 lint
+> eslint . --fix
+
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/checkout/CheckoutDigital.tsx
+   71:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  348:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  349:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  410:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  418:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/checkout/CheckoutPhysical.tsx
+  106:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  443:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  444:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  501:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  509:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/checkout/OrderBumps.tsx
+  242:47  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/dashboard/RecentOrders.tsx
+  19:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/dashboard/RevenueProgress.tsx
+  17:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/badge.tsx
+  29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/button.tsx
+  47:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/command.tsx
+  24:11  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/form.tsx
+  129:10  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/navigation-menu.tsx
+  111:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/sidebar.tsx
+  636:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/sonner.tsx
+  27:19  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/textarea.tsx
+  5:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/components/ui/toggle.tsx
+  37:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/contexts/AuthContext.tsx
+  65:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/contexts/CurrencyContext.tsx
+  72:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/contexts/PlatformContext.tsx
+  40:17  error    Empty block statement                                                                                                           no-empty
+  54:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/pages/AbandonedCarts.tsx
+   7:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/pages/Analytics.tsx
+    9:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   53:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/pages/Cards.tsx
+   7:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/pages/Checkout.tsx
+  80:6  warning  React Hook useEffect has a missing dependency: 'proofs.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/pages/Orders.tsx
+  16:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/pages/Settings.tsx
+  238:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  300:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  437:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  536:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/src/pages/Success.tsx
+  11:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  46:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/pabloscwartzmann/PLATAFORM NOVAPAY/tailwind.config.ts
+  101:13  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 48 problems (37 errors, 11 warnings)
+

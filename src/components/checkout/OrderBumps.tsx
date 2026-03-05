@@ -233,13 +233,13 @@ export interface UpsellBannerProps {
 
 export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor, mainProductCurrency }: UpsellBannerProps) {
     const [dismissed, setDismissed] = useState(false);
+    const [isSubscribing, setIsSubscribing] = useState(false);
 
     if (dismissed) return null;
 
     const price = upsell.price_override ?? parseFloat(upsell.product_price ?? '0');
     const cycle = upsell.billing_cycle ?? upsell.product_billing_cycle;
     const cycleLabel: Record<string, string> = { weekly: '/semana', monthly: '/mês', yearly: '/ano' };
-    const [isSubscribing, setIsSubscribing] = useState(false);
 
     const handleAccept = async () => {
         setIsSubscribing(true); // Reusing this for loading state

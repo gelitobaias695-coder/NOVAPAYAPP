@@ -103,7 +103,9 @@ export default function CheckoutPhysical({ product }: Props) {
             utm_term: params.get("utm_term"),
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((window as any).fbq) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (window as any).fbq('track', 'ViewContent', {
                 content_name: product.name,
                 content_ids: [product.id],
@@ -227,6 +229,7 @@ export default function CheckoutPhysical({ product }: Props) {
                         orderId={orderId ?? ''}
                         funnelId={funnel.id}
                         primaryColor={primaryColor}
+                        mainProductCurrency={product.currency || 'ZAR'}
                     />
                 </div>
             );
@@ -357,6 +360,7 @@ export default function CheckoutPhysical({ product }: Props) {
                                         onTotalChange={handleBumpChange}
                                         orderId={orderId}
                                         funnelId={funnel?.id}
+                                        mainProductCurrency={product.currency || 'ZAR'}
                                     />
                                 </div>
                             )}
@@ -440,7 +444,9 @@ export default function CheckoutPhysical({ product }: Props) {
                                 <Button className="flex-[2] gap-2 h-12 text-base font-semibold transition-transform active:scale-[0.98]"
                                     onClick={() => {
                                         setStep(3);
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                         if ((window as any).fbq) {
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                             (window as any).fbq('track', 'InitiateCheckout', {
                                                 content_name: product.name,
                                                 content_ids: [product.id],
@@ -498,6 +504,7 @@ export default function CheckoutPhysical({ product }: Props) {
                                         {product.currency !== 'ZAR' ? (
                                             <div className="flex flex-col items-center w-full">
                                                 <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 shadow-sm p-4 rounded-lg w-full max-w-sm mb-4 text-center">
+                                                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                                     {((t as any).zarConversionInfo || "Para garantir segurança e proteção antifraude, o pagamento será processado em ZAR (Rand Sul-Africano).\nO valor será automaticamente convertido pelo seu banco na cobrança.\nVocê verá o valor final em ZAR na próxima etapa antes de confirmar.").split('\n').map((line: string, idx: number) => (
                                                         <p key={idx} className="mb-1 leading-relaxed">{line}</p>
                                                     ))}
@@ -506,6 +513,7 @@ export default function CheckoutPhysical({ product }: Props) {
                                                     <div className="border border-green-200 rounded-lg p-3 inline-block bg-green-50 shadow-sm w-full max-w-[280px]">
                                                         <p className="text-gray-900 font-bold mb-1 flex items-center justify-center gap-1.5 text-xs uppercase tracking-wide">
                                                             <svg className="h-3.5 w-3.5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                                                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                                             {(t as any).currentConversion || "Conversão atual"}:
                                                         </p>
                                                         <span className="text-primary font-bold text-base" style={{ color: product.primary_color }}>

@@ -8,6 +8,7 @@ import { UpsellBanner } from "@/components/checkout/OrderBumps";
 export default function SuccessPage() {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get("order_id") || searchParams.get("orderId") || searchParams.get("reference");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -42,8 +43,9 @@ export default function SuccessPage() {
 
     useEffect(() => {
         if (order && (order.status === 'success' || order.status === 'paid')) {
-            if ((window as any).fbq) {
-                (window as any).fbq('track', 'Purchase', {
+            const win = window as unknown as { fbq?: (...args: unknown[]) => void };
+            if (win.fbq) {
+                win.fbq('track', 'Purchase', {
                     content_name: order.product_name || "Produto",
                     content_ids: [order.product_id],
                     content_type: 'product',
@@ -161,6 +163,7 @@ export default function SuccessPage() {
                     orderId={orderId!}
                     funnelId={funnel?.id}
                     primaryColor={order.primary_color || '#10B981'}
+                    mainProductCurrency={order.currency || 'ZAR'}
                     downsell={funnel?.downsells?.[0] || funnel?.downsell}
                 />
             )}

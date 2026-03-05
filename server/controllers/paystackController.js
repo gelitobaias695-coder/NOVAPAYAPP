@@ -29,7 +29,7 @@ export async function handleWebhook(req, res) {
     res.sendStatus(200);
     if (!signature || !req.body) return;
     try {
-        await paystackService.handleWebhook(req.body, signature);
+        await paystackService.handleWebhook(req.body, signature, req.rawBody);
     } catch (err) {
         console.error('[Webhook] Processing error:', err.message);
     }
