@@ -93,7 +93,7 @@ export async function sendPostback(orderId) {
                 email: order.customer_email || 'vazio@email.com',
                 document: "", // Requerido obrigatoriamente
                 phone: order.customer_phone || '',
-                country: order.country || 'MZ',
+                country: (order.country || 'MZ').substring(0, 2).toUpperCase(), // Força código ISO Alpha-2
                 city: order.city || '',
                 state: order.province || '',
                 zipCode: order.postal_code || '',
