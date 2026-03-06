@@ -580,8 +580,8 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                         <div className="space-y-3 rounded-lg border border-border p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium">Redirecionar para URL personalizada após a compra?</p>
-                                    <p className="text-xs text-muted-foreground">O cliente será enviado para este link ao invés da página padrão de sucesso.</p>
+                                    <p className="text-sm font-medium">Configurar botão "Acessar Meu Produto"?</p>
+                                    <p className="text-xs text-muted-foreground">Adiciona um link (URL) para o cliente no botão central da página de Sucesso.</p>
                                 </div>
                                 <Switch
                                     checked={isRedirectEnabled}
@@ -591,7 +591,7 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
 
                             {isRedirectEnabled && (
                                 <div className="space-y-1 animate-fade-in mt-3 pt-3 border-t border-border">
-                                    <Label>URL de Sucesso / Área de Membros</Label>
+                                    <Label>Link do Produto (URL de Sucesso / Área de Membros)</Label>
                                     <Input
                                         placeholder="https://sua-area-de-membros.com/acesso"
                                         type="url"

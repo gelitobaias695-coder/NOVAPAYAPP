@@ -57,12 +57,14 @@ export default function SuccessPage() {
                 }, { eventID: order.id });
             }
 
-            // Redirect if the product has a custom success URL configured
+            /*
+            // Removed: Do not automatically redirect so the user sees the Success Page receipt.
             if (order.product_success_url) {
                 setTimeout(() => {
                     window.location.href = order.product_success_url;
-                }, 800); // 800ms delay to ensure pixel tracking fires
+                }, 800); 
             }
+            */
         }
     }, [order]);
 
@@ -147,9 +149,6 @@ export default function SuccessPage() {
                             ) : (
                                 <span><Package className="h-5 w-5" /> {t.accessProduct || "Acessar Meu Produto"}</span>
                             )}
-                        </Button>
-                        <Button variant="outline" asChild className="w-full h-12 rounded-xl text-zinc-600">
-                            <Link to="/" className="gap-2"><ShoppingBag className="h-4 w-4" /> {t.continueShopping || "Continuar Comprando"}</Link>
                         </Button>
                     </div>
                 </div>
