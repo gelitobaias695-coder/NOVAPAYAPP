@@ -4,7 +4,9 @@ import {
   ShoppingCart,
   TrendingUp,
   Users,
+  RefreshCw,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import MetricCard from "@/components/dashboard/MetricCard";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import CountryRevenue from "@/components/dashboard/CountryRevenue";
@@ -29,7 +31,7 @@ export default function Dashboard() {
   const [dateFilter, setDateFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  useEffect(() => {
+  const fetchStats = () => {
     setLoading(true);
     let url = `/api/orders/stats?filter=${dateFilter}`;
     if (dateFilter === "custom" && dateRange?.from && dateRange?.to) {
@@ -44,6 +46,10 @@ export default function Dashboard() {
       .then(data => setRawStats(data.data))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchStats();
   }, [dateFilter, dateRange]); // refetch when dateFilter or dateRange changes
 
   // Recalculate revenue whenever rates or raw stats change
@@ -107,6 +113,16 @@ export default function Dashboard() {
               </SelectContent>
             </Select>
           </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={fetchStats}
+            disabled={loading}
+            className="w-10 h-10 shrink-0"
+            title="Atualizar dados"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-muted-foreground" : "text-foreground"}`} />
+          </Button>
         </div>
       </div>
 
