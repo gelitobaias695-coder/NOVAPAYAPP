@@ -80,6 +80,17 @@ export async function sendPostback(orderId) {
 
         const nowIso = new Date().toISOString();
 
+        // Extrai código de país Alpha-2
+        let countryCode = 'MZ';
+        const rawCountry = order.country ? order.country.toUpperCase() : '';
+        if (rawCountry === 'MOZAMBIQUE') countryCode = 'MZ';
+        else if (rawCountry === 'SOUTH AFRICA') countryCode = 'ZA';
+        else if (rawCountry === 'ANGOLA') countryCode = 'AO';
+        else if (rawCountry === 'PORTUGAL') countryCode = 'PT';
+        else if (rawCountry === 'BRAZIL' || rawCountry === 'BRASIL') countryCode = 'BR';
+        else if (rawCountry === 'UNITED STATES') countryCode = 'US';
+        else if (rawCountry.length === 2) countryCode = rawCountry;
+
         // Format for UTMify docs:
         const payload = {
             platform: platform_name || 'NovaPay',
@@ -91,9 +102,9 @@ export async function sendPostback(orderId) {
             customer: {
                 name: order.customer_name || 'Desconhecido',
                 email: order.customer_email || 'vazio@email.com',
-                document: "", // Requerido obrigatoriamente
+                document: "00000000000", // Fallback seguro (vazio por falhar na API dependendo da config do cliente)
                 phone: order.customer_phone || '',
-                country: (order.country || 'MZ').substring(0, 2).toUpperCase(), // Força código ISO Alpha-2
+                country: countryCode,
                 city: order.city || '',
                 state: order.province || '',
                 zipCode: order.postal_code || '',

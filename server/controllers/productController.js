@@ -26,11 +26,16 @@ export async function addProduct(req, res, next) {
             require_whatsapp: req.body.require_whatsapp === true || req.body.require_whatsapp === 'true',
         };
 
+        const baseUrl = process.env.VITE_APP_URL || process.env.FRONTEND_URL || 'http://localhost:3001';
+        const isProdAndNotLocal = process.env.NODE_ENV === 'production' && !baseUrl.includes('localhost');
+
         if (req.files?.logo_image?.[0]) {
-            input.logo_url = `/uploads/${req.files.logo_image[0].filename}`;
+            const fileUrl = `/uploads/${req.files.logo_image[0].filename}`;
+            input.logo_url = isProdAndNotLocal ? `${baseUrl}${fileUrl}` : `http://localhost:3001${fileUrl}`;
         }
         if (req.files?.product_image?.[0]) {
-            input.product_image_url = `/uploads/${req.files.product_image[0].filename}`;
+            const fileUrl = `/uploads/${req.files.product_image[0].filename}`;
+            input.product_image_url = isProdAndNotLocal ? `${baseUrl}${fileUrl}` : `http://localhost:3001${fileUrl}`;
         }
 
         const product = await productService.createProduct(input);
@@ -48,11 +53,16 @@ export async function updateProduct(req, res, next) {
             require_whatsapp: req.body.require_whatsapp === true || req.body.require_whatsapp === 'true',
         };
 
+        const baseUrl = process.env.VITE_APP_URL || process.env.FRONTEND_URL || 'http://localhost:3001';
+        const isProdAndNotLocal = process.env.NODE_ENV === 'production' && !baseUrl.includes('localhost');
+
         if (req.files?.logo_image?.[0]) {
-            input.logo_url = `/uploads/${req.files.logo_image[0].filename}`;
+            const fileUrl = `/uploads/${req.files.logo_image[0].filename}`;
+            input.logo_url = isProdAndNotLocal ? `${baseUrl}${fileUrl}` : `http://localhost:3001${fileUrl}`;
         }
         if (req.files?.product_image?.[0]) {
-            input.product_image_url = `/uploads/${req.files.product_image[0].filename}`;
+            const fileUrl = `/uploads/${req.files.product_image[0].filename}`;
+            input.product_image_url = isProdAndNotLocal ? `${baseUrl}${fileUrl}` : `http://localhost:3001${fileUrl}`;
         }
 
         const product = await productService.updateProduct(req.params.id, input);

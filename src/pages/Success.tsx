@@ -4,13 +4,16 @@ import { CheckCircle, Package, ArrowRight, ShoppingBag, Loader2 } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { useCheckoutFunnel } from "@/hooks/useFunnels";
 import { UpsellBanner } from "@/components/checkout/OrderBumps";
+import { useTranslation, type Language } from "@/components/checkout/translations";
 
 export default function SuccessPage() {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get("order_id") || searchParams.get("orderId") || searchParams.get("reference");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+
+    const lang: Language = order?.checkout_language || 'pt';
+    const t = useTranslation(lang, 'success');
 
     // Fetch funnel for potential upsells
     const { funnel } = useCheckoutFunnel(order?.product_id);
@@ -67,9 +70,9 @@ export default function SuccessPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <h1 className="text-xl font-bold">Processando seu pedido...</h1>
+                <h1 className="text-xl font-bold">{t.processing || "Processando seu pedido..."}</h1>
                 <p className="text-muted-foreground text-center max-w-xs">
-                    Estamos confirmando seu pagamento. Por favor, não feche esta página.
+                    {t.confirmingPayment || "Estamos confirmando seu pagamento. Por favor, não feche esta página."}
                 </p>
             </div>
         );
@@ -82,10 +85,10 @@ export default function SuccessPage() {
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
                         <CheckCircle className="h-8 w-8 text-red-600" />
                     </div>
-                    <h2 className="text-2xl font-bold text-zinc-900">Pedido não encontrado</h2>
-                    <p className="text-muted-foreground">Não conseguimos localizar os detalhes da sua compra.</p>
+                    <h2 className="text-2xl font-bold text-zinc-900">{t.orderNotFound || "Pedido não encontrado"}</h2>
+                    <p className="text-muted-foreground">{t.cannotLocate || "Não conseguimos localizar os detalhes da sua compra."}</p>
                     <Button asChild className="w-full h-12 rounded-xl">
-                        <Link to="/">Voltar ao Início</Link>
+                        <Link to="/">{t.backToHome || "Voltar ao Início"}</Link>
                     </Button>
                 </div>
             </div>
@@ -104,14 +107,14 @@ export default function SuccessPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Obrigado!</h1>
-                    <p className="text-zinc-500 font-medium">Seu pedido #{order.id?.slice(0, 8)} foi confirmado.</p>
+                    <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">{t.thankYou || "Obrigado!"}</h1>
+                    <p className="text-zinc-500 font-medium">{t.orderConfirmed?.replace('{id}', order.id?.slice(0, 8)) || `Seu pedido #${order.id?.slice(0, 8)} foi confirmado.`}</p>
                 </div>
 
                 <div className="bg-zinc-50 rounded-xl p-4 text-left space-y-3 border border-zinc-100">
                     <div className="flex justify-between items-center pb-2 border-b border-zinc-200/60">
-                        <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Resumo</span>
-                        <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">PAGO</span>
+                        <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">{t.summary || "Resumo"}</span>
+                        <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{t.paid || "PAGO"}</span>
                     </div>
                     <div className="space-y-2">
                         <div className="flex justify-between items-center">
@@ -120,11 +123,11 @@ export default function SuccessPage() {
                         </div>
                         {order.bump_products && order.bump_products.length > 0 && (
                             <div className="text-xs text-zinc-500 italic pb-1">
-                                + {order.bump_products.length} item(s) adicionais
+                                {t.additionalItems?.replace('{count}', order.bump_products.length.toString()) || `+ ${order.bump_products.length} item(s) adicionais`}
                             </div>
                         )}
                         <div className="flex justify-between items-center pt-2 border-t border-zinc-200/60">
-                            <span className="font-bold text-zinc-900 text-lg">Total</span>
+                            <span className="font-bold text-zinc-900 text-lg">{t.total || "Total"}</span>
                             <span className="font-extrabold text-primary text-xl" style={{ color: order.primary_color || '#10B981' }}>
                                 {order.currency} {order.total_amount || order.price}
                             </span>
@@ -134,23 +137,27 @@ export default function SuccessPage() {
 
                 <div className="space-y-3">
                     <p className="text-sm text-zinc-500">
-                        Enviamos os detalhes da sua compra para <span className="font-bold text-zinc-700">{order.customer_email}</span>.
+                        {t.emailSentTo || "Enviamos os detalhes da sua compra para"} <span className="font-bold text-zinc-700">{order.customer_email}</span>.
                     </p>
 
                     <div className="pt-2 flex flex-col gap-3">
-                        <Button className="w-full h-13 rounded-xl font-bold gap-2 text-base transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: order.primary_color || '#10B981' }}>
-                            <Package className="h-5 w-5" /> Acessar Meu Produto
+                        <Button asChild className="w-full h-13 rounded-xl font-bold gap-2 text-base transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: order.primary_color || '#10B981' }}>
+                            {order.product_success_url ? (
+                                <a href={order.product_success_url}><Package className="h-5 w-5" /> {t.accessProduct || "Acessar Meu Produto"}</a>
+                            ) : (
+                                <span><Package className="h-5 w-5" /> {t.accessProduct || "Acessar Meu Produto"}</span>
+                            )}
                         </Button>
                         <Button variant="outline" asChild className="w-full h-12 rounded-xl text-zinc-600">
-                            <Link to="/" className="gap-2"><ShoppingBag className="h-4 w-4" /> Continuar Comprando</Link>
+                            <Link to="/" className="gap-2"><ShoppingBag className="h-4 w-4" /> {t.continueShopping || "Continuar Comprando"}</Link>
                         </Button>
                     </div>
                 </div>
 
                 <div className="flex items-center justify-center gap-4 text-[10px] text-zinc-400 font-medium uppercase tracking-widest pt-4">
-                    <span className="flex items-center gap-1">🔒 Seguro</span>
+                    <span className="flex items-center gap-1">🔒 {t.secure || "Seguro"}</span>
                     <span>•</span>
-                    <span className="flex items-center gap-1">✅ Autêntico</span>
+                    <span className="flex items-center gap-1">✅ {t.authentic || "Autêntico"}</span>
                     <span>•</span>
                     <span className="flex items-center gap-1">💳 NovaPay</span>
                 </div>

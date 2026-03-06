@@ -45,6 +45,24 @@ export const translations = {
             checkoutSecurityMsg: "🔒 Você será redirecionado para o ambiente 100% seguro para inserir os dados do seu cartão. Suas informações são criptografadas e protegidas via conformidade PCI DSS.",
             zarConversionInfo: "Para garantir segurança e proteção antifraude, o pagamento será processado em ZAR (Rand Sul-Africano).\nO valor será automaticamente convertido pelo seu banco na cobrança.\nVocê verá o valor final em ZAR na próxima etapa antes de confirmar.",
             currentConversion: "Conversão atual"
+        },
+        success: {
+            processing: "Processando seu pedido...",
+            confirmingPayment: "Estamos confirmando seu pagamento. Por favor, não feche esta página.",
+            orderNotFound: "Pedido não encontrado",
+            cannotLocate: "Não conseguimos localizar os detalhes da sua compra.",
+            backToHome: "Voltar ao Início",
+            thankYou: "Obrigado!",
+            orderConfirmed: "Seu pedido #{id} foi confirmado.",
+            summary: "Resumo",
+            paid: "PAGO",
+            additionalItems: "+ {count} item(s) adicionais",
+            total: "Total",
+            emailSentTo: "Enviamos os detalhes da sua compra para",
+            accessProduct: "Acessar Meu Produto",
+            continueShopping: "Continuar Comprando",
+            secure: "Seguro",
+            authentic: "Autêntico"
         }
     },
     en: {
@@ -91,6 +109,24 @@ export const translations = {
             checkoutSecurityMsg: "🔒 You will be redirected to the 100% secure environment to enter your card details. Your information is encrypted and protected via PCI DSS compliance.",
             zarConversionInfo: "To ensure security and fraud protection, your payment will be processed in ZAR (South African Rand).\nYour bank will automatically convert the amount when charged.\nYou'll see the final amount in ZAR at the next step before confirming.",
             currentConversion: "Current conversion"
+        },
+        success: {
+            processing: "Processing your order...",
+            confirmingPayment: "We are confirming your payment. Please do not close this page.",
+            orderNotFound: "Order not found",
+            cannotLocate: "We could not locate the details of your purchase.",
+            backToHome: "Back to Home",
+            thankYou: "Thank You!",
+            orderConfirmed: "Your order #{id} has been confirmed.",
+            summary: "Summary",
+            paid: "PAID",
+            additionalItems: "+ {count} additional item(s)",
+            total: "Total",
+            emailSentTo: "We sent your purchase details to",
+            accessProduct: "Access My Product",
+            continueShopping: "Continue Shopping",
+            secure: "Secure",
+            authentic: "Authentic"
         }
     },
     fr: {
@@ -137,6 +173,24 @@ export const translations = {
             checkoutSecurityMsg: "🔒 Vous serez redirigé vers l'environnement 100% sécurisé pour saisir les détails de votre carte. Vos informations sont cryptées et protégées via la conformité PCI DSS.",
             zarConversionInfo: "Pour assurer la sécurité et la protection contre la fraude, le paiement sera traité en ZAR (Rand sud-africain).\nLe montant sera automatiquement converti par votre banque lors de la facturation.\nVous verrez le montant final en ZAR à la prochaine étape avant de confirmer.",
             currentConversion: "Conversion actuelle"
+        },
+        success: {
+            processing: "Traitement de votre commande...",
+            confirmingPayment: "Nous confirmons votre paiement. Veuillez ne pas fermer cette page.",
+            orderNotFound: "Commande introuvable",
+            cannotLocate: "Nous n'avons pas pu trouver les détails de votre achat.",
+            backToHome: "Retour à l'accueil",
+            thankYou: "Merci !",
+            orderConfirmed: "Votre commande #{id} a été confirmée.",
+            summary: "Résumé",
+            paid: "PAYÉ",
+            additionalItems: "+ {count} article(s) supplémentaire(s)",
+            total: "Total",
+            emailSentTo: "Nous avons envoyé les détails de votre achat à",
+            accessProduct: "Accéder à Mon Produit",
+            continueShopping: "Continuer vos achats",
+            secure: "Sécurisé",
+            authentic: "Authentique"
         }
     },
     es: {
@@ -183,10 +237,29 @@ export const translations = {
             checkoutSecurityMsg: "🔒 Serás redirigido al entorno 100% seguro para ingresar los datos de tu tarjeta. Tu información está encriptada y protegida mediante el cumplimiento de PCI DSS.",
             zarConversionInfo: "Para garantizar la seguridad y protección contra el fraude, el pago se procesará en ZAR (Rand Sudafricano).\nEl importe será convertido automáticamente por su banco en el momento del cobro.\nVerá el importe final en ZAR en el siguiente paso antes de confirmar.",
             currentConversion: "Conversión actual"
+        },
+        success: {
+            processing: "Procesando su pedido...",
+            confirmingPayment: "Estamos confirmando su pago. Por favor, no cierre esta página.",
+            orderNotFound: "Pedido no encontrado",
+            cannotLocate: "No pudimos localizar los detalles de su compra.",
+            backToHome: "Volver al Inicio",
+            thankYou: "¡Gracias!",
+            orderConfirmed: "Su pedido #{id} ha sido confirmado.",
+            summary: "Resumen",
+            paid: "PAGADO",
+            additionalItems: "+ {count} artículo(s) adicional(es)",
+            total: "Total",
+            emailSentTo: "Enviamos los detalles de su compra a",
+            accessProduct: "Acceder a mi Producto",
+            continueShopping: "Continuar Comprando",
+            secure: "Seguro",
+            authentic: "Auténtico"
         }
     }
 };
 
-export function useTranslation(lang: Language = 'pt') {
-    return translations[lang]?.checkout || translations['pt'].checkout;
+export function useTranslation(lang: Language = 'pt', section: 'checkout' | 'success' = 'checkout'): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (translations[lang] as any)?.[section] || (translations['pt'] as any)[section];
 }

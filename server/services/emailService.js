@@ -47,13 +47,12 @@ export async function sendOrderConfirmation(orderId) {
         const senderName = order.p_sender_name || globalSenderName;
         const senderEmail = order.p_sender_email || globalSenderEmail;
 
-        // Variáveis de Sistema
-        const isPT = ['BR', 'PT', 'MZ', 'AO', 'CV', 'GW', 'ST', 'Brazil', 'Portugal', 'Mozambique', 'Angola', 'Cape Verde'].includes(order.country) ||
-            (order.province !== null && ['Maputo', 'Luanda', 'SP', 'RJ'].includes(order.province));
+        const lang = order.checkout_language || 'pt'; // can be 'pt', 'en', 'es', 'fr'
+        const isPT = lang === 'pt';
         const firstName = order.customer_name ? order.customer_name.split(' ')[0] : (isPT ? 'Cliente' : 'Customer');
         const isPhysical = order.checkout_type === 'physical';
         const productImage = order.product_image_url || 'https://via.placeholder.com/600x300?text=Produto+Confirmado';
-        const supportEmail = 'suporte@novapay.co'; // Variável para o link do botão de suporte
+        const supportEmail = 'suporte@novapay.co';
 
         let subject = '';
         let bodyText = '';
@@ -61,7 +60,12 @@ export async function sendOrderConfirmation(orderId) {
         let supportButtonText = '';
         let primaryBtnText = '';
 
-        if (isPT) {
+        let productLabel = 'Product';
+        let orderIdLabel = 'Order ID';
+        let totalPaidLabel = 'Total Paid';
+        let allRightsLabel = 'All rights reserved.';
+
+        if (lang === 'pt') {
             if (isPhysical) {
                 subject = `Seu ${order.product_name} está sendo preparado! 📦`;
                 bodyText = `Olá <strong>${firstName}</strong>, seu kit já entrou na nossa linha de produção. Logo você receberá o código de rastreio.`;
@@ -73,7 +77,35 @@ export async function sendOrderConfirmation(orderId) {
             }
             helpText = 'Precisa de ajuda? Fale com nosso suporte.';
             supportButtonText = 'CONTATO SUPORTE';
+            productLabel = 'Produto'; orderIdLabel = 'ID do Pedido'; totalPaidLabel = 'Total Pago'; allRightsLabel = 'Todos os direitos reservados.';
+        } else if (lang === 'es') {
+            if (isPhysical) {
+                subject = `¡Tu ${order.product_name} está siendo preparado! 📦`;
+                bodyText = `Hola <strong>${firstName}</strong>, tu pedido ya ha entrado en nuestra línea de producción. Pronto recibirás el código de seguimiento.`;
+                primaryBtnText = 'Rastrear Pedido';
+            } else {
+                subject = `¡Tu acceso ha llegado! 🚀 ${order.product_name}`;
+                bodyText = `Hola <strong>${firstName}</strong>, ¡felicidades por tu compra! Tu inicio de sesión y contraseña han sido enviados a este correo electrónico. Haz clic abajo para entrar al área de miembros.`;
+                primaryBtnText = 'Acceder al Área de Miembros';
+            }
+            helpText = '¿Necesitas ayuda? Contacta a nuestro soporte.';
+            supportButtonText = 'CONTACTAR SOPORTE';
+            productLabel = 'Producto'; orderIdLabel = 'ID del Pedido'; totalPaidLabel = 'Total Pagado'; allRightsLabel = 'Todos los derechos reservados.';
+        } else if (lang === 'fr') {
+            if (isPhysical) {
+                subject = `Votre ${order.product_name} est en cours de préparation ! 📦`;
+                bodyText = `Bonjour <strong>${firstName}</strong>, votre commande est désormais dans notre file d'attente d'expédition. Vous recevrez bientôt votre code de suivi.`;
+                primaryBtnText = 'Suivre la Commande';
+            } else {
+                subject = `Accès accordé ! 🚀 ${order.product_name}`;
+                bodyText = `Bonjour <strong>${firstName}</strong>, félicitations ! Vos identifiants de connexion ont été envoyés à cet e-mail. Cliquez ci-dessous pour accéder à l'espace membre.`;
+                primaryBtnText = 'Accéder à l\'Espace Membre';
+            }
+            helpText = 'Besoin d\'aide ? Contactez notre support.';
+            supportButtonText = 'CONTACTER LE SUPPORT';
+            productLabel = 'Produit'; orderIdLabel = 'N° de Commande'; totalPaidLabel = 'Total Payé'; allRightsLabel = 'Tous droits réservés.';
         } else {
+            // 'en' default
             if (isPhysical) {
                 subject = `Your ${order.product_name} is being prepared! 📦`;
                 bodyText = `Hi <strong>${firstName}</strong>, your kit is now in our shipping queue. You will receive your tracking code shortly.`;
@@ -104,9 +136,9 @@ export async function sendOrderConfirmation(orderId) {
                     <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">${bodyText}</p>
                     
                     <div style="background-color: #1a1a1a; border-radius: 8px; padding: 20px; margin-top: 30px; text-align: left;">
-                        <p style="color: #e4e4e7; margin: 0 0 10px 0; font-size: 14px;"><strong>${isPT ? 'Produto' : 'Product'}:</strong> ${order.product_name}</p>
-                        <p style="color: #e4e4e7; margin: 0 0 10px 0; font-size: 14px;"><strong>${isPT ? 'ID do Pedido' : 'Order ID'}:</strong> #${order.id.split('-')[0].toUpperCase()}</p>
-                        <p style="color: #e4e4e7; margin: 0; font-size: 14px;"><strong>${isPT ? 'Total Pago' : 'Total Paid'}:</strong> ${order.currency} ${parseFloat(order.amount).toFixed(2)}</p>
+                        <p style="color: #e4e4e7; margin: 0 0 10px 0; font-size: 14px;"><strong>${productLabel}:</strong> ${order.product_name}</p>
+                        <p style="color: #e4e4e7; margin: 0 0 10px 0; font-size: 14px;"><strong>${orderIdLabel}:</strong> #${order.id.split('-')[0].toUpperCase()}</p>
+                        <p style="color: #e4e4e7; margin: 0; font-size: 14px;"><strong>${totalPaidLabel}:</strong> ${order.currency} ${parseFloat(order.amount).toFixed(2)}</p>
                     </div>
 
                     <div style="margin-top: 35px;">
@@ -125,7 +157,7 @@ export async function sendOrderConfirmation(orderId) {
             </div>
 
             <p style="text-align: center; color: #a1a1aa; font-size: 12px; margin-top: 20px;">
-                © ${new Date().getFullYear()} ${senderName}. ${isPT ? 'Todos os direitos reservados.' : 'All rights reserved.'}
+                © ${new Date().getFullYear()} ${senderName}. ${allRightsLabel}
             </p>
         </div>
         `;
