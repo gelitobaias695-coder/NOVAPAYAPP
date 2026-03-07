@@ -184,27 +184,6 @@ function PaystackSection() {
                 </AnimatedButton>
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Webhook Secret (opcional)</Label>
-              <div className="flex gap-1.5">
-                <Input
-                  type={showWebhook ? "text" : "password"}
-                  placeholder="Segredo para validar eventos da Paystack"
-                  value={settings.webhook_secret}
-                  onChange={(e) => setSettings(s => ({ ...s, webhook_secret: e.target.value }))}
-                  className="text-xs flex-1"
-                />
-                <AnimatedButton
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 shrink-0"
-                  onClick={() => setShowWebhook(!showWebhook)}
-                >
-                  {showWebhook ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </AnimatedButton>
-              </div>
-            </div>
           </div>
 
           <div className="space-y-1.5 rounded-lg bg-muted p-3">
