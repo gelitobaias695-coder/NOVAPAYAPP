@@ -35,6 +35,8 @@ function PaystackSection() {
   const [settings, setSettings] = useState({
     public_key: "",
     secret_key: "",
+    test_public_key: "",
+    test_secret_key: "",
     webhook_secret: "",
     is_live: true,
   });
@@ -47,6 +49,8 @@ function PaystackSection() {
         setSettings({
           public_key: data.data.public_key || "",
           secret_key: data.data.secret_key || "",
+          test_public_key: data.data.test_public_key || "",
+          test_secret_key: data.data.test_secret_key || "",
           webhook_secret: data.data.webhook_secret || "",
           is_live: data.data.is_live ?? true,
         });
@@ -120,7 +124,7 @@ function PaystackSection() {
 
           <div className="grid gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">Public Key</Label>
+              <Label className="text-xs">Live Public Key</Label>
               <Input
                 placeholder="pk_live_..."
                 value={settings.public_key}
@@ -130,13 +134,44 @@ function PaystackSection() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Secret Key</Label>
+              <Label className="text-xs">Live Secret Key</Label>
               <div className="flex gap-1.5">
                 <Input
                   type={showSecret ? "text" : "password"}
                   placeholder="sk_live_..."
                   value={settings.secret_key}
                   onChange={(e) => setSettings(s => ({ ...s, secret_key: e.target.value }))}
+                  className="text-xs flex-1"
+                />
+                <AnimatedButton
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  onClick={() => setShowSecret(!showSecret)}
+                >
+                  {showSecret ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </AnimatedButton>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Test Public Key</Label>
+              <Input
+                placeholder="pk_test_..."
+                value={settings.test_public_key}
+                onChange={(e) => setSettings(s => ({ ...s, test_public_key: e.target.value }))}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Test Secret Key</Label>
+              <div className="flex gap-1.5">
+                <Input
+                  type={showSecret ? "text" : "password"}
+                  placeholder="sk_test_..."
+                  value={settings.test_secret_key}
+                  onChange={(e) => setSettings(s => ({ ...s, test_secret_key: e.target.value }))}
                   className="text-xs flex-1"
                 />
                 <AnimatedButton

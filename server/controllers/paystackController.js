@@ -46,8 +46,8 @@ export async function getSettings(req, res, next) {
 // PUT /api/paystack/settings
 export async function saveSettings(req, res, next) {
     try {
-        const { secret_key, public_key, webhook_secret, is_live } = req.body;
-        const data = await paystackService.saveSettings({ secret_key, public_key, webhook_secret, is_live });
+        const { secret_key, public_key, webhook_secret, is_live, test_secret_key, test_public_key } = req.body;
+        const data = await paystackService.saveSettings({ secret_key, public_key, webhook_secret, is_live, test_secret_key, test_public_key });
         res.json({ data, message: 'Configurações salvas com sucesso no Neon!' });
     } catch (err) { next(err); }
 }

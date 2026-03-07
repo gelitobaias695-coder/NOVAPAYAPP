@@ -12,11 +12,17 @@ const API_URL = 'https://api.paystack.co';
 async function getCredentials() {
     try {
         const res = await pool.query(
-            `SELECT secret_key, public_key, webhook_secret, is_live 
+            `SELECT secret_key, public_key, webhook_secret, is_live, test_secret_key, test_public_key 
              FROM gateway_settings WHERE gateway_name = 'paystack' LIMIT 1`
         );
-        if (res.rowCount > 0 && res.rows[0].secret_key) {
-            return res.rows[0];
+        if (res.rowCount > 0 && (res.rows[0].secret_key || res.rows[0].test_secret_key)) {
+            const row = res.rows[0];
+            return {
+                secret_key: row.is_live ? row.secret_key : row.test_secret_key,
+                public_key: row.is_live ? row.public_key : row.test_public_key,
+                webhook_secret: row.webhook_secret,
+                is_live: row.is_live
+            };
         }
     } catch (err) {
         console.warn('[Paystack] Could not load credentials from DB, using .env fallback:', err.message);
@@ -285,7 +291,7 @@ export async function handleWebhook(body, signature, rawBodyBuf) {
 // ─── Gateway Settings CRUD ────────────────────────────────────────────────────
 export async function getSettings() {
     const res = await pool.query(
-        `SELECT id, gateway_name, public_key, secret_key, webhook_secret, is_live, updated_at
+        `SELECT id, gateway_name, public_key, secret_key, webhook_secret, is_live, test_secret_key, test_public_key, updated_at
          FROM gateway_settings WHERE gateway_name = 'paystack' LIMIT 1`
     );
     return res.rows[0] ?? null;
@@ -293,16 +299,18 @@ export async function getSettings() {
 
 export async function saveSettings({ secret_key, public_key, webhook_secret, is_live }) {
     const res = await pool.query(
-        `INSERT INTO gateway_settings (gateway_name, secret_key, public_key, webhook_secret, is_live, updated_at)
-         VALUES ('paystack', $1, $2, $3, $4, NOW())
+        `INSERT INTO gateway_settings (gateway_name, secret_key, public_key, webhook_secret, is_live, test_secret_key, test_public_key, updated_at)
+         VALUES ('paystack', $1, $2, $3, $4, $5, $6, NOW())
          ON CONFLICT (gateway_name) DO UPDATE
          SET secret_key = COALESCE(NULLIF($1, ''), gateway_settings.secret_key),
              public_key = COALESCE(NULLIF($2, ''), gateway_settings.public_key),
              webhook_secret = COALESCE(NULLIF($3, ''), gateway_settings.webhook_secret),
              is_live = $4,
+             test_secret_key = COALESCE(NULLIF($5, ''), gateway_settings.test_secret_key),
+             test_public_key = COALESCE(NULLIF($6, ''), gateway_settings.test_public_key),
              updated_at = NOW()
-         RETURNING id, gateway_name, public_key, secret_key, webhook_secret, is_live, updated_at`,
-        [secret_key || null, public_key || null, webhook_secret || null, is_live ?? true]
+         RETURNING id, gateway_name, public_key, secret_key, webhook_secret, is_live, test_secret_key, test_public_key, updated_at`,
+        [secret_key || null, public_key || null, webhook_secret || null, is_live ?? true, arguments[0].test_secret_key || null, arguments[0].test_public_key || null]
     );
     return res.rows[0];
 }
