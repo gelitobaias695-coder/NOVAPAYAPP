@@ -168,7 +168,13 @@ export default function Orders() {
                       </Badge>
                     </td>
                     <td className="p-4">
-                      <span className="text-xs text-muted-foreground">—</span>
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {order.utm_source ? (
+                          <span className="px-2 py-1 bg-muted rounded">
+                            {order.utm_source}
+                          </span>
+                        ) : "—"}
+                      </span>
                     </td>
                     <td className="p-4 text-xs text-muted-foreground whitespace-nowrap">
                       {new Date(order.created_at).toLocaleString("pt-BR")}
