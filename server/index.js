@@ -51,7 +51,6 @@ app.use('/api/pixel', pixelRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/platform', platformRouter);
 
-// ── Legacy: DB healthcheck + exchange-rates ───────────────────────────────────
 const { Pool } = pg;
 const pool = process.env.DATABASE_URL
   ? new Pool({
@@ -60,6 +59,15 @@ const pool = process.env.DATABASE_URL
     max: 10,
   })
   : null;
+
+if (pool) {
+  pool.query(`
+    ALTER TABLE gateway_settings 
+    ADD COLUMN IF NOT EXISTS test_secret_key TEXT,
+    ADD COLUMN IF NOT EXISTS test_public_key TEXT;
+  `).then(() => console.log('[DB] Test keys columns ensured'))
+    .catch(e => console.error('[DB] Error auto-migrating test keys:', e.message));
+}
 
 app.get('/api/db-test', async (req, res) => {
   if (!pool) {
