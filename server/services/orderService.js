@@ -14,7 +14,7 @@ export const CreateOrderSchema = z.object({
     checkout_type: z.enum(['physical', 'digital']),
     status: z.enum(['pending', 'success', 'abandoned']).optional(),
     bump_products: z.array(z.string().uuid()).optional().default([]),
-    src: z.string().optional(),
+    src: z.string().nullable().optional(),
     client_ip_address: z.string().optional()
 }).passthrough();
 

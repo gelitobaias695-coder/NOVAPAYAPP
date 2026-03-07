@@ -112,7 +112,7 @@ export async function sendPostback(orderId) {
             },
             products,
             trackingParameters: {
-                src: order.utm_source || '',
+                src: order.src || order.utm_source || '',
                 utm_source: order.utm_source || '',
                 utm_medium: order.utm_medium || '',
                 utm_campaign: order.utm_campaign || '',

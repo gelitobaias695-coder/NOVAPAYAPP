@@ -99,8 +99,9 @@ export default function CheckoutPhysical({ product }: Props) {
             utm_source: params.get("utm_source"),
             utm_medium: params.get("utm_medium"),
             utm_campaign: params.get("utm_campaign"),
-            utm_content: params.get("utm_content"),
-            utm_term: params.get("utm_term"),
+            utm_content: params.get("utm_content") || null,
+            utm_term: params.get("utm_term") || null,
+            src: params.get("src") || params.get("sck") || params.get("ref") || null,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -104,6 +104,7 @@ export default function CheckoutDigital({ product }: Props) {
             utm_campaign: params.get("utm_campaign") || null,
             utm_content: params.get("utm_content") || null,
             utm_term: params.get("utm_term") || null,
+            src: params.get("src") || params.get("sck") || params.get("ref") || null,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
