@@ -17,6 +17,7 @@ import emailRouter from './routes/email.js';
 import pixelRouter from './routes/pixelRoutes.js';
 import authRouter from './routes/auth.js';
 import platformRouter from './routes/platform.js';
+import adminRouter from './routes/admin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +51,7 @@ app.use('/api/email', emailRouter);
 app.use('/api/pixel', pixelRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/platform', platformRouter);
+app.use('/api/admin', adminRouter);
 
 const { Pool } = pg;
 const pool = process.env.DATABASE_URL

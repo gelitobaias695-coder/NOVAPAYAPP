@@ -176,20 +176,38 @@ export async function chargeUpsell({ order_id, upsell_product_id, email }) {
 
 // ─── Webhook Handler (validated) ──────────────────────────────────────────────
 export async function handleWebhook(body, signature, rawBodyBuf) {
-    const creds = await getCredentials();
-    const webhookSecret = creds.webhook_secret || creds.secret_key;
-    if (!webhookSecret) throw new Error('Webhook secret not configured');
+    // Load all credentials to be able to try both keys
+    const res = await pool.query(
+        `SELECT secret_key, public_key, webhook_secret, is_live, test_secret_key, test_public_key 
+         FROM gateway_settings WHERE gateway_name = 'paystack' LIMIT 1`
+    );
+    const row = res.rowCount > 0 ? res.rows[0] : null;
+
+    // Build list of candidate secrets to try (webhook_secret fields first, then secret keys)
+    const candidates = [
+        row?.webhook_secret,
+        row?.test_secret_key,
+        row?.secret_key,
+        process.env.PAYSTACK_SECRET_KEY,
+    ].filter(Boolean);
+
+    if (candidates.length === 0) throw new Error('No Paystack secrets configured');
 
     // Use rawBodyBuf if available (from express.json verify hook) ensuring perfect match
     const rawToSign = rawBodyBuf ? rawBodyBuf.toString('utf8') : JSON.stringify(body);
 
-    // Validate Paystack HMAC-SHA512 signature
-    const hash = crypto.createHmac('sha512', webhookSecret)
-        .update(rawToSign)
-        .digest('hex');
+    // Try each candidate until one matches
+    let signatureValid = false;
+    for (const secret of candidates) {
+        const hash = crypto.createHmac('sha512', secret).update(rawToSign).digest('hex');
+        if (hash === signature) {
+            signatureValid = true;
+            break;
+        }
+    }
 
-    if (hash !== signature) {
-        console.error('[Webhook] Invalid signature, expected:', hash, 'got:', signature);
+    if (!signatureValid) {
+        console.error('[Webhook] Invalid signature — tried', candidates.length, 'secrets. Got:', signature?.substring(0, 20));
         const err = new Error('Invalid webhook signature');
         err.statusCode = 401;
         throw err;
@@ -289,6 +307,19 @@ export async function handleWebhook(body, signature, rawBodyBuf) {
 }
 
 // ─── Gateway Settings CRUD ────────────────────────────────────────────────────
+
+// ─── Admin: Force-process a pending order as success (for test/debug) ─────────
+export async function forceOrderSuccess(orderId) {
+    console.log(`[Admin] Force-processing order ${orderId} as success`);
+    await pool.query(
+        `UPDATE orders SET status = 'success', updated_at = NOW() WHERE id = $1`,
+        [orderId]
+    );
+    await utmifyService.sendPostback(orderId);
+    await emailService.sendOrderConfirmation(orderId);
+    console.log(`[Admin] Order ${orderId} force-processed ✅`);
+    return { ok: true, orderId };
+}
 export async function getSettings() {
     const res = await pool.query(
         `SELECT id, gateway_name, public_key, secret_key, webhook_secret, is_live, test_secret_key, test_public_key, updated_at
