@@ -297,7 +297,7 @@ export async function getSettings() {
     return res.rows[0] ?? null;
 }
 
-export async function saveSettings({ secret_key, public_key, webhook_secret, is_live }) {
+export async function saveSettings({ secret_key, public_key, webhook_secret, is_live, test_secret_key, test_public_key }) {
     const res = await pool.query(
         `INSERT INTO gateway_settings (gateway_name, secret_key, public_key, webhook_secret, is_live, test_secret_key, test_public_key, updated_at)
          VALUES ('paystack', $1, $2, $3, $4, $5, $6, NOW())
@@ -310,7 +310,7 @@ export async function saveSettings({ secret_key, public_key, webhook_secret, is_
              test_public_key = COALESCE(NULLIF($6, ''), gateway_settings.test_public_key),
              updated_at = NOW()
          RETURNING id, gateway_name, public_key, secret_key, webhook_secret, is_live, test_secret_key, test_public_key, updated_at`,
-        [secret_key || null, public_key || null, webhook_secret || null, is_live ?? true, arguments[0].test_secret_key || null, arguments[0].test_public_key || null]
+        [secret_key || null, public_key || null, webhook_secret || null, is_live ?? true, test_secret_key || null, test_public_key || null]
     );
     return res.rows[0];
 }
