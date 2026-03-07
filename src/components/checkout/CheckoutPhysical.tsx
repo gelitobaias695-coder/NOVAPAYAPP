@@ -69,7 +69,7 @@ export default function CheckoutPhysical({ product }: Props) {
     const [orderId, setOrderId] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
     const [showUpsell, setShowUpsell] = useState(false);
-    const [analyticsData, setAnalyticsData] = useState<Record<string, string | null>>({});
+    const [analyticsData, setAnalyticsData] = useState<Record<string, string | undefined>>({});
     const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
 
     useEffect(() => {
@@ -96,12 +96,12 @@ export default function CheckoutPhysical({ product }: Props) {
         const params = new URLSearchParams(window.location.search);
         setAnalyticsData({
             browser, device_type, user_agent: ua,
-            utm_source: params.get("utm_source"),
-            utm_medium: params.get("utm_medium"),
-            utm_campaign: params.get("utm_campaign"),
-            utm_content: params.get("utm_content") || null,
-            utm_term: params.get("utm_term") || null,
-            src: params.get("src") || params.get("sck") || params.get("ref") || null,
+            utm_source: params.get("utm_source") || undefined,
+            utm_medium: params.get("utm_medium") || undefined,
+            utm_campaign: params.get("utm_campaign") || undefined,
+            utm_content: params.get("utm_content") || undefined,
+            utm_term: params.get("utm_term") || undefined,
+            src: params.get("src") || params.get("sck") || params.get("ref") || undefined,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

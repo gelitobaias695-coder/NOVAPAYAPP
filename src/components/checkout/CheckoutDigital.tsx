@@ -99,12 +99,12 @@ export default function CheckoutDigital({ product }: Props) {
             browser,
             device_type,
             user_agent: ua,
-            utm_source: params.get("utm_source") || null,
-            utm_medium: params.get("utm_medium") || null,
-            utm_campaign: params.get("utm_campaign") || null,
-            utm_content: params.get("utm_content") || null,
-            utm_term: params.get("utm_term") || null,
-            src: params.get("src") || params.get("sck") || params.get("ref") || null,
+            utm_source: params.get("utm_source") || undefined,
+            utm_medium: params.get("utm_medium") || undefined,
+            utm_campaign: params.get("utm_campaign") || undefined,
+            utm_content: params.get("utm_content") || undefined,
+            utm_term: params.get("utm_term") || undefined,
+            src: params.get("src") || params.get("sck") || params.get("ref") || undefined,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
