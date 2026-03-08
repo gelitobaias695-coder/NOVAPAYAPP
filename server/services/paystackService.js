@@ -186,16 +186,15 @@ export async function chargeUpsell({ order_id, upsell_product_id, email }) {
             );
             const parent = parentRes.rowCount > 0 ? parentRes.rows[0] : {};
 
-            // Create a new order row for this upsell purchase
+            // Step 1: INSERT with only guaranteed base columns (always safe)
             const upsellOrderRes = await pool.query(
                 `INSERT INTO orders
                     (product_id, customer_name, customer_email, customer_phone,
                      country, city, province, postal_code, address,
                      amount, currency, status, paystack_reference,
-                     authorization_code, checkout_language, checkout_type,
-                     utm_source, utm_medium, utm_campaign, utm_content, utm_term, src,
-                     parent_order_id)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'success',$12,$13,$14,'upsell',$15,$16,$17,$18,$19,$20,$21)
+                     authorization_code, checkout_language,
+                     utm_source, utm_medium, utm_campaign, utm_content, utm_term, src)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'success',$12,$13,$14,$15,$16,$17,$18,$19,$20)
                  RETURNING id`,
                 [
                     upsell_product_id,
@@ -218,12 +217,19 @@ export async function chargeUpsell({ order_id, upsell_product_id, email }) {
                     parent.utm_content || null,
                     parent.utm_term || null,
                     parent.src || null,
-                    order_id,  // link back to parent
                 ]
             );
 
             const upsellOrderId = upsellOrderRes.rows[0]?.id;
             console.log(`[Upsell] Created upsell order ${upsellOrderId} for product ${product.name}`);
+
+            // Step 2: Try to set optional tracking columns (won't crash if they don't exist yet)
+            if (upsellOrderId) {
+                pool.query(
+                    `UPDATE orders SET checkout_type = 'upsell', parent_order_id = $2 WHERE id = $1`,
+                    [upsellOrderId, order_id]
+                ).catch(e => console.warn('[Upsell] Optional columns update skipped:', e.message));
+            }
 
             if (upsellOrderId) {
                 // Fire UTMify postback for the upsell sale
@@ -235,8 +241,8 @@ export async function chargeUpsell({ order_id, upsell_product_id, email }) {
                 console.log(`[Upsell] Confirmation email sent for upsell order ${upsellOrderId}`);
             }
         } catch (postErr) {
-            // Don't fail the charge if notifications error — charge already succeeded
-            console.error('[Upsell] Post-charge notification error:', postErr.message);
+            // Log full error so we can see it in Render logs
+            console.error('[Upsell] Post-charge notification error:', postErr.message, postErr.stack);
         }
     }
 
