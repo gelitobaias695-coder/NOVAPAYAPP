@@ -69,6 +69,14 @@ if (pool) {
     ADD COLUMN IF NOT EXISTS test_public_key TEXT;
   `).then(() => console.log('[DB] Test keys columns ensured'))
     .catch(e => console.error('[DB] Error auto-migrating test keys:', e.message));
+
+  // Upsell order tracking columns
+  pool.query(`
+    ALTER TABLE orders 
+    ADD COLUMN IF NOT EXISTS parent_order_id UUID,
+    ADD COLUMN IF NOT EXISTS checkout_type TEXT DEFAULT 'physical';
+  `).then(() => console.log('[DB] Upsell order columns ensured'))
+    .catch(e => console.error('[DB] Error auto-migrating upsell columns:', e.message));
 }
 
 app.get('/api/db-test', async (req, res) => {
