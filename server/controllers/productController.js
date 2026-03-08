@@ -1,24 +1,13 @@
 import * as productService from '../services/productService.js';
-import { uploadBuffer } from '../services/cloudinaryService.js';
+import pool from '../db/pool.js';
 
-// Helper: upload a file from req.files to Cloudinary, return secure_url or null
-async function uploadIfPresent(files, fieldName) {
+// Helper: convert file buffer to base64 data URL and store in DB column
+async function saveImageToDb(productId, files, fieldName, column) {
     const file = files?.[fieldName]?.[0];
-    if (!file) return null;
-    if (!process.env.CLOUDINARY_CLOUD_NAME) {
-        // No Cloudinary configured — fallback to old local disk behaviour via buffer won't work
-        // Just skip and return null; user must configure Cloudinary
-        console.warn('[Upload] CLOUDINARY_CLOUD_NAME not set — image upload skipped');
-        return null;
-    }
-    try {
-        const url = await uploadBuffer(file.buffer, 'novapay/products');
-        console.log(`[Cloudinary] Uploaded ${fieldName}: ${url}`);
-        return url;
-    } catch (err) {
-        console.error(`[Cloudinary] Upload failed for ${fieldName}:`, err.message);
-        return null;
-    }
+    if (!file || !file.buffer) return null;
+    const base64 = file.buffer.toString('base64');
+    const dataUrl = `data:${file.mimetype};base64,${base64}`;
+    return dataUrl;
 }
 
 export async function getProducts(req, res, next) {
@@ -47,11 +36,18 @@ export async function addProduct(req, res, next) {
             require_whatsapp: req.body.require_whatsapp === true || req.body.require_whatsapp === 'true',
         };
 
-        const logoUrl = await uploadIfPresent(req.files, 'logo_image');
-        const productImageUrl = await uploadIfPresent(req.files, 'product_image');
+        // Convert uploaded images to base64 data URLs
+        const logoData = await saveImageToDb(null, req.files, 'logo_image', 'logo_data');
+        const productImageData = await saveImageToDb(null, req.files, 'product_image', 'product_image_data');
 
-        if (logoUrl) input.logo_url = logoUrl;
-        if (productImageUrl) input.product_image_url = productImageUrl;
+        if (logoData) {
+            input.logo_url = logoData;
+            input.logo_data = logoData;
+        }
+        if (productImageData) {
+            input.product_image_url = productImageData;
+            input.product_image_data = productImageData;
+        }
 
         const product = await productService.createProduct(input);
         res.status(201).json({ data: product });
@@ -68,11 +64,17 @@ export async function updateProduct(req, res, next) {
             require_whatsapp: req.body.require_whatsapp === true || req.body.require_whatsapp === 'true',
         };
 
-        const logoUrl = await uploadIfPresent(req.files, 'logo_image');
-        const productImageUrl = await uploadIfPresent(req.files, 'product_image');
+        const logoData = await saveImageToDb(null, req.files, 'logo_image', 'logo_data');
+        const productImageData = await saveImageToDb(null, req.files, 'product_image', 'product_image_data');
 
-        if (logoUrl) input.logo_url = logoUrl;
-        if (productImageUrl) input.product_image_url = productImageUrl;
+        if (logoData) {
+            input.logo_url = logoData;
+            input.logo_data = logoData;
+        }
+        if (productImageData) {
+            input.product_image_url = productImageData;
+            input.product_image_data = productImageData;
+        }
 
         const product = await productService.updateProduct(req.params.id, input);
         res.status(200).json({ data: product });
