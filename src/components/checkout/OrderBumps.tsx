@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { CheckCircle, Tag, Zap, TrendingDown } from "lucide-react";
 import { type FunnelOrderBump, logBumpAction } from "@/hooks/useFunnels";
 import { formatPriceValue } from "@/lib/currency";
+import { useTranslation, type Language } from "./translations";
 
 interface OrderBumpItemProps {
     bump: FunnelOrderBump;
@@ -144,10 +145,12 @@ interface OrderBumpsProps {
     orderId?: string | null;
     funnelId?: string | null;
     mainProductCurrency: string;
+    lang?: Language;
 }
 
-export default function OrderBumps({ bumps, primaryColor, onTotalChange, orderId, funnelId, mainProductCurrency }: OrderBumpsProps) {
+export default function OrderBumps({ bumps, primaryColor, onTotalChange, orderId, funnelId, mainProductCurrency, lang = 'pt' }: OrderBumpsProps) {
     const [selectedBumpIds, setSelectedBumpIds] = useState<Set<string>>(new Set());
+    const t = useTranslation(lang, 'upsell');
 
     const activeBumps = bumps.filter(b => b.enabled !== false && b.product_id);
 
@@ -158,7 +161,6 @@ export default function OrderBumps({ bumps, primaryColor, onTotalChange, orderId
             if (checked) next.add(bumpKey);
             else next.delete(bumpKey);
 
-            // Compute new extra total
             const selectedBumps = activeBumps.filter(b => next.has(b.id ?? b.product_id ?? ''));
             const extra = selectedBumps.reduce((sum, b) => {
                 const orig = parseFloat(b.product_price ?? '0');
@@ -179,7 +181,7 @@ export default function OrderBumps({ bumps, primaryColor, onTotalChange, orderId
             <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4" style={{ color: primaryColor }} />
                 <p className="text-sm font-semibold text-zinc-800">
-                    Adicione ao seu pedido com desconto exclusivo!
+                    {t.addWithDiscount}
                 </p>
             </div>
             <div className="space-y-2">
@@ -198,7 +200,7 @@ export default function OrderBumps({ bumps, primaryColor, onTotalChange, orderId
             </div>
             {selectedBumpIds.size > 0 && (
                 <p className="text-xs text-center font-medium" style={{ color: primaryColor }}>
-                    ✅ {selectedBumpIds.size} item{selectedBumpIds.size > 1 ? 's' : ''} adicionado{selectedBumpIds.size > 1 ? 's' : ''} ao pedido!
+                    ✅ {t.itemsAdded?.replace('{count}', selectedBumpIds.size.toString())}
                 </p>
             )}
         </div>
@@ -229,17 +231,28 @@ export interface UpsellBannerProps {
     funnelId?: string;
     primaryColor: string;
     mainProductCurrency: string;
+    lang?: Language;
 }
 
-export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor, mainProductCurrency }: UpsellBannerProps) {
+export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor, mainProductCurrency, lang = 'pt' }: UpsellBannerProps) {
     const [dismissed, setDismissed] = useState(false);
     const [isSubscribing, setIsSubscribing] = useState(false);
+    const t = useTranslation(lang, 'upsell');
 
     if (dismissed) return null;
 
     const price = upsell.price_override ?? parseFloat(upsell.product_price ?? '0');
     const cycle = upsell.billing_cycle ?? upsell.product_billing_cycle;
-    const cycleLabel: Record<string, string> = { weekly: '/semana', monthly: '/mês', yearly: '/ano' };
+    const cycleLabel: Record<string, string> = {
+        weekly: t.perWeek || '/semana',
+        monthly: t.perMonth || '/mês',
+        yearly: t.perYear || '/ano'
+    };
+    const cycleNameLabel: Record<string, string> = {
+        monthly: t.monthly || 'Mensal',
+        yearly: t.yearly || 'Anual',
+        weekly: t.weekly || 'Semanal'
+    };
 
     const handleAccept = async () => {
         setIsSubscribing(true); // Reusing this for loading state
@@ -308,8 +321,8 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
             {isSubscribing && (
                 <div className="absolute inset-0 z-[110] bg-white/50 backdrop-blur-md flex flex-col items-center justify-center rounded-2xl">
                     <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                    <p className="text-zinc-900 font-bold text-lg">Processando assinatura...</p>
-                    <p className="text-sm text-zinc-600">Por favor, não feche esta janela.</p>
+                    <p className="text-zinc-900 font-bold text-lg">{t.processingSubscription}</p>
+                    <p className="text-sm text-zinc-600">{t.dontClose}</p>
                 </div>
             )}
             <div className={`bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 relative ${isSubscribing ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -318,7 +331,7 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
                     <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-bold text-white shadow-lg"
                         style={{ backgroundColor: primaryColor }}>
                         <Zap className="h-4 w-4" />
-                        Oferta Especial — Apenas Agora!
+                        {t.specialOffer}
                     </span>
                 </div>
 
@@ -333,7 +346,7 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
                     {upsell.is_recurring && (
                         <div className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary font-semibold px-3 py-1 rounded-full">
                             <CheckCircle className="h-3.5 w-3.5" />
-                            Assinatura {cycle === 'monthly' ? 'Mensal' : cycle === 'yearly' ? 'Anual' : 'Semanal'}
+                            {cycleNameLabel[cycle || ''] || cycle}
                         </div>
                     )}
                 </div>
@@ -344,7 +357,7 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
                     className="w-full h-13 rounded-xl font-bold text-white text-base py-3.5 transition-transform active:scale-95 shadow-lg disabled:opacity-50"
                     style={{ backgroundColor: primaryColor }}
                 >
-                    {upsell.is_recurring ? "✅ Sim! Adicionar assinatura ao meu plano atual com 1 clique" : "✅ Sim! Quero Adicionar ao Meu Pedido"}
+                    {upsell.is_recurring ? t.addSubscription : t.addToOrder}
                 </button>
 
                 <button
@@ -352,14 +365,14 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
                     className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
                 >
                     {downsell
-                        ? `Não obrigado. Ver oferta de ${downsell.discount}% de desconto.`
-                        : 'Não, obrigado. Pular esta oferta.'}
+                        ? t.noThanksDownsell?.replace('{discount}', String(downsell.discount || ''))
+                        : t.noThanks}
                 </button>
 
                 {downsell && (
                     <div className="flex items-center gap-1.5 text-xs text-orange-600 bg-orange-50 rounded-lg p-2 justify-center">
                         <TrendingDown className="h-3.5 w-3.5" />
-                        Alternativa: {downsell.product_name} com {downsell.discount}% off
+                        {t.alternative}: {downsell.product_name} {t.withDiscount?.replace('{discount}', String(downsell.discount || ''))}
                     </div>
                 )}
             </div>

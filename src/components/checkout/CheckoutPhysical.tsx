@@ -362,6 +362,7 @@ export default function CheckoutPhysical({ product }: Props) {
                                         orderId={orderId}
                                         funnelId={funnel?.id}
                                         mainProductCurrency={product.currency || 'ZAR'}
+                                        lang={(product.checkout_language as Language) || 'pt'}
                                     />
                                 </div>
                             )}

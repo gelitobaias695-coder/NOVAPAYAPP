@@ -171,6 +171,7 @@ export default function SuccessPage() {
                     primaryColor={order.primary_color || '#10B981'}
                     mainProductCurrency={order.currency || 'ZAR'}
                     downsell={funnel?.downsells?.[0] || funnel?.downsell}
+                    lang={lang}
                 />
             )}
         </div>

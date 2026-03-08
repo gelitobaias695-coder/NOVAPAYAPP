@@ -63,6 +63,26 @@ export const translations = {
             continueShopping: "Continuar Comprando",
             secure: "Seguro",
             authentic: "Autêntico"
+        },
+        upsell: {
+            specialOffer: "Oferta Especial — Apenas Agora!",
+            addSubscription: "✅ Sim! Adicionar assinatura ao meu plano atual com 1 clique",
+            addToOrder: "✅ Sim! Quero Adicionar ao Meu Pedido",
+            noThanks: "Não, obrigado. Pular esta oferta.",
+            noThanksDownsell: "Não obrigado. Ver oferta de {discount}% de desconto.",
+            alternative: "Alternativa",
+            withDiscount: "com {discount}% off",
+            processingSubscription: "Processando assinatura...",
+            dontClose: "Por favor, não feche esta janela.",
+            addedSuccess: "Adicionado com sucesso!",
+            monthly: "Mensal",
+            yearly: "Anual",
+            weekly: "Semanal",
+            perWeek: "/semana",
+            perMonth: "/mês",
+            perYear: "/ano",
+            addWithDiscount: "Adicione ao seu pedido com desconto exclusivo!",
+            itemsAdded: "{count} item(s) adicionado(s) ao pedido!"
         }
     },
     en: {
@@ -127,6 +147,26 @@ export const translations = {
             continueShopping: "Continue Shopping",
             secure: "Secure",
             authentic: "Authentic"
+        },
+        upsell: {
+            specialOffer: "Special Offer — Now Only!",
+            addSubscription: "✅ Yes! Add subscription to my current plan with 1 click",
+            addToOrder: "✅ Yes! Add to My Order",
+            noThanks: "No thanks. Skip this offer.",
+            noThanksDownsell: "No thanks. See {discount}% discount offer.",
+            alternative: "Alternative",
+            withDiscount: "with {discount}% off",
+            processingSubscription: "Processing subscription...",
+            dontClose: "Please do not close this window.",
+            addedSuccess: "Added successfully!",
+            monthly: "Monthly",
+            yearly: "Yearly",
+            weekly: "Weekly",
+            perWeek: "/week",
+            perMonth: "/month",
+            perYear: "/year",
+            addWithDiscount: "Add to your order with exclusive discount!",
+            itemsAdded: "{count} item(s) added to order!"
         }
     },
     fr: {
@@ -191,6 +231,26 @@ export const translations = {
             continueShopping: "Continuer vos achats",
             secure: "Sécurisé",
             authentic: "Authentique"
+        },
+        upsell: {
+            specialOffer: "Offre Spéciale — Maintenant Seulement!",
+            addSubscription: "✅ Oui ! Ajouter l'abonnement à mon plan actuel en 1 clic",
+            addToOrder: "✅ Oui ! Ajouter à Ma Commande",
+            noThanks: "Non merci. Passer cette offre.",
+            noThanksDownsell: "Non merci. Voir l'offre de {discount}% de réduction.",
+            alternative: "Alternative",
+            withDiscount: "avec {discount}% de réduction",
+            processingSubscription: "Traitement de l'abonnement...",
+            dontClose: "Veuillez ne pas fermer cette fenêtre.",
+            addedSuccess: "Ajouté avec succès!",
+            monthly: "Mensuel",
+            yearly: "Annuel",
+            weekly: "Hebdomadaire",
+            perWeek: "/semaine",
+            perMonth: "/mois",
+            perYear: "/an",
+            addWithDiscount: "Ajoutez à votre commande avec une réduction exclusive!",
+            itemsAdded: "{count} article(s) ajouté(s) à la commande!"
         }
     },
     es: {
@@ -255,11 +315,31 @@ export const translations = {
             continueShopping: "Continuar Comprando",
             secure: "Seguro",
             authentic: "Auténtico"
+        },
+        upsell: {
+            specialOffer: "¡Oferta Especial — Solo Ahora!",
+            addSubscription: "✅ ¡Sí! Agregar suscripción a mi plan actual con 1 clic",
+            addToOrder: "✅ ¡Sí! Quiero Agregar a Mi Pedido",
+            noThanks: "No gracias. Saltar esta oferta.",
+            noThanksDownsell: "No gracias. Ver oferta de {discount}% de descuento.",
+            alternative: "Alternativa",
+            withDiscount: "con {discount}% de descuento",
+            processingSubscription: "Procesando suscripción...",
+            dontClose: "Por favor, no cierre esta ventana.",
+            addedSuccess: "¡Agregado con éxito!",
+            monthly: "Mensual",
+            yearly: "Anual",
+            weekly: "Semanal",
+            perWeek: "/semana",
+            perMonth: "/mes",
+            perYear: "/año",
+            addWithDiscount: "¡Agregue a su pedido con descuento exclusivo!",
+            itemsAdded: "{count} artículo(s) agregado(s) al pedido!"
         }
     }
 };
 
-export function useTranslation(lang: Language = 'pt', section: 'checkout' | 'success' = 'checkout'): any {
+export function useTranslation(lang: Language = 'pt', section: 'checkout' | 'success' | 'upsell' = 'checkout'): any {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (translations[lang] as any)?.[section] || (translations['pt'] as any)[section];
 }
