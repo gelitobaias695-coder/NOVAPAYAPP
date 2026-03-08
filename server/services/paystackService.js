@@ -171,7 +171,76 @@ export async function chargeUpsell({ order_id, upsell_product_id, email }) {
 
     if (!data.status) throw new Error(`Paystack Upsell Charge Error: ${data.message || 'Erro desconhecido'}`);
 
-    return data.data;
+    const chargeData = data.data;
+
+    // ── Post-charge: create upsell order + fire UTMify + email ────────────────
+    if (chargeData?.status === 'success') {
+        try {
+            // Fetch parent order details to copy customer info
+            const parentRes = await pool.query(
+                `SELECT customer_name, customer_email, customer_phone, country, city,
+                        province, postal_code, address, checkout_language,
+                        utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+                        src, authorization_code
+                 FROM orders WHERE id = $1`, [order_id]
+            );
+            const parent = parentRes.rowCount > 0 ? parentRes.rows[0] : {};
+
+            // Create a new order row for this upsell purchase
+            const upsellOrderRes = await pool.query(
+                `INSERT INTO orders
+                    (product_id, customer_name, customer_email, customer_phone,
+                     country, city, province, postal_code, address,
+                     amount, currency, status, paystack_reference,
+                     authorization_code, checkout_language, checkout_type,
+                     utm_source, utm_medium, utm_campaign, utm_content, utm_term, src,
+                     parent_order_id)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'success',$12,$13,$14,'upsell',$15,$16,$17,$18,$19,$20,$21)
+                 RETURNING id`,
+                [
+                    upsell_product_id,
+                    parent.customer_name || 'Upsell Customer',
+                    parent.customer_email || customerEmail,
+                    parent.customer_phone || '',
+                    parent.country || '',
+                    parent.city || '',
+                    parent.province || '',
+                    parent.postal_code || '',
+                    parent.address || '',
+                    parseFloat(product.price),
+                    product.currency,
+                    chargeData.reference,
+                    parent.authorization_code || authCode,
+                    parent.checkout_language || 'pt',
+                    parent.utm_source || null,
+                    parent.utm_medium || null,
+                    parent.utm_campaign || null,
+                    parent.utm_content || null,
+                    parent.utm_term || null,
+                    parent.src || null,
+                    order_id,  // link back to parent
+                ]
+            );
+
+            const upsellOrderId = upsellOrderRes.rows[0]?.id;
+            console.log(`[Upsell] Created upsell order ${upsellOrderId} for product ${product.name}`);
+
+            if (upsellOrderId) {
+                // Fire UTMify postback for the upsell sale
+                await utmifyService.sendPostback(upsellOrderId);
+                console.log(`[Upsell] UTMify postback sent for upsell order ${upsellOrderId}`);
+
+                // Send order confirmation email for the upsell
+                await emailService.sendOrderConfirmation(upsellOrderId);
+                console.log(`[Upsell] Confirmation email sent for upsell order ${upsellOrderId}`);
+            }
+        } catch (postErr) {
+            // Don't fail the charge if notifications error — charge already succeeded
+            console.error('[Upsell] Post-charge notification error:', postErr.message);
+        }
+    }
+
+    return chargeData;
 }
 
 // ─── Webhook Handler (validated) ──────────────────────────────────────────────
