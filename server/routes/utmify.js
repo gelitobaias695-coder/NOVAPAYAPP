@@ -16,17 +16,22 @@ router.get('/settings', async (req, res, next) => {
 router.put('/settings', async (req, res, next) => {
     try {
         const { utmify_api_token, platform_name } = req.body;
+        console.log(`[UTMify] Saving settings. Token length: ${utmify_api_token?.length || 0}`);
+
         await pool.query(
             `INSERT INTO gateway_settings (gateway_name, secret_key, public_key, is_live, updated_at)
              VALUES ('utmify', $1, $2, true, NOW())
              ON CONFLICT (gateway_name) DO UPDATE
-             SET secret_key = COALESCE(NULLIF($1, ''), gateway_settings.secret_key),
-                 public_key = COALESCE(NULLIF($2, ''), gateway_settings.public_key),
+             SET secret_key = $1,
+                 public_key = COALESCE($2, gateway_settings.public_key),
                  updated_at = NOW()`,
-            [utmify_api_token || null, platform_name || null]
+            [utmify_api_token, platform_name || null]
         );
         res.json({ message: 'Configurações do UTMify salvas no Neon com sucesso!' });
-    } catch (err) { next(err); }
+    } catch (err) {
+        console.error('[UTMify] Error saving settings:', err.message);
+        next(err);
+    }
 });
 
 export default router;
