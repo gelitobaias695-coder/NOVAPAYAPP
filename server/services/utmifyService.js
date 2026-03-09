@@ -14,8 +14,35 @@ export async function sendUtmifyOrder(normalizedOrder) {
 
         const nowIso = new Date().toISOString();
 
-        // Ensure amount and prices are in cents
-        const amountInCents = normalizedOrder.amountInCents || Math.round((normalizedOrder.amount || 0) * 100);
+        // Currency and Conversion handling (MANDATORY for UTMify)
+        const allowedCurrencies = ["BRL", "USD", "EUR", "GBP", "ARS", "CAD", "COP", "MXN", "PYG", "CLP", "PEN", "PLN", "UAH", "CHF", "THB", "AUD"];
+        const rawCurrency = (normalizedOrder.currency || 'USD').toUpperCase().trim();
+        let baseCurrency = rawCurrency;
+        let conversionRate = 1;
+
+        if (baseCurrency === 'KSH') baseCurrency = 'KES';
+        if (baseCurrency === 'MT') baseCurrency = 'MZN';
+
+        if (!allowedCurrencies.includes(baseCurrency)) {
+            if (baseCurrency === 'ZAR') conversionRate = 19;
+            else if (baseCurrency === 'KES') conversionRate = 130;
+            else if (baseCurrency === 'MZN') conversionRate = 64;
+            else if (baseCurrency === 'AOA') conversionRate = 830;
+            else if (baseCurrency === 'NGN') conversionRate = 1500;
+            else if (baseCurrency === 'GHS') conversionRate = 12;
+            else conversionRate = 1;
+            baseCurrency = 'USD';
+        }
+
+        const toCents = (val) => Math.round((parseFloat(val || 0) / conversionRate) * 100);
+
+        // Use normalized amount or calculate from float
+        let totalCents = normalizedOrder.amountInCents || Math.round((normalizedOrder.amount || 0) * 100);
+
+        // If we converted currency, we need to adjust the cents
+        if (conversionRate !== 1 && normalizedOrder.currency !== baseCurrency) {
+            totalCents = toCents(totalCents / 100);
+        }
 
         const payload = {
             platform: platform_name || normalizedOrder.platform || 'NovaPay',
@@ -23,7 +50,7 @@ export async function sendUtmifyOrder(normalizedOrder) {
             paymentMethod: normalizedOrder.paymentMethod || 'credit_card',
             status: normalizedOrder.status || 'approved',
             createdAt: normalizedOrder.createdAt || nowIso,
-            approvedDate: normalizedOrder.status === 'approved' ? (normalizedOrder.approvedDate || nowIso) : null,
+            approvedDate: (normalizedOrder.status === 'approved' || normalizedOrder.status === 'paid') ? (normalizedOrder.approvedDate || nowIso) : null,
             customer: {
                 name: normalizedOrder.customerName || 'Cliente',
                 email: normalizedOrder.customerEmail || 'vazio@email.com',
@@ -35,20 +62,26 @@ export async function sendUtmifyOrder(normalizedOrder) {
                 zipCode: normalizedOrder.zipCode || '',
                 ip: normalizedOrder.ip || '127.0.0.1'
             },
-            products: normalizedOrder.products || [],
+            products: (normalizedOrder.products || []).map(p => ({
+                id: p.id,
+                name: p.name,
+                priceInCents: conversionRate !== 1 ? toCents((p.priceInCents || 0) / 100) : (p.priceInCents || 0),
+                price_in_cents: conversionRate !== 1 ? toCents((p.priceInCents || 0) / 100) : (p.price_in_cents || p.priceInCents || 0),
+                quantity: p.quantity || 1
+            })),
             trackingParameters: normalizedOrder.trackingParameters || {
                 src: '', utm_source: '', utm_medium: '', utm_campaign: '', utm_content: '', utm_term: ''
             },
             commission: {
-                totalPriceInCents: amountInCents,
-                total_price_in_cents: amountInCents,
-                gatewayFeeInCents: normalizedOrder.gatewayFeeInCents || Math.round(amountInCents * 0.029),
-                userCommissionInCents: normalizedOrder.userCommissionInCents || Math.round(amountInCents * 0.971),
-                currency: normalizedOrder.currency || 'BRL'
+                totalPriceInCents: totalCents,
+                total_price_in_cents: totalCents,
+                gatewayFeeInCents: Math.round(totalCents * 0.029),
+                userCommissionInCents: Math.round(totalCents * 0.971),
+                currency: baseCurrency
             }
         };
 
-        console.log(`[UTMify] Sending postback for order ${payload.orderId}...`);
+        console.log(`[UTMify] Sending postback for order ${payload.orderId} (${normalizedOrder.currency} -> ${baseCurrency})...`);
 
         let fetchFn = typeof fetch === 'function' ? fetch : null;
         if (!fetchFn) {
@@ -68,7 +101,6 @@ export async function sendUtmifyOrder(normalizedOrder) {
         const respText = await response.text();
         if (!response.ok) {
             console.error(`[UTMify] Error: ${response.status} - ${respText}`);
-            // console.error(`[UTMify] Payload sent:`, JSON.stringify(payload));
         } else {
             console.log(`[UTMify] Postback successful: ${respText}`);
         }
@@ -185,4 +217,3 @@ export async function sendPostback(orderId) {
         console.error('[UTMify] sendPostback error:', err.message);
     }
 }
-
