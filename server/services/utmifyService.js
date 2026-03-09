@@ -32,6 +32,24 @@ export async function sendUtmifyOrder(normalizedOrder) {
         // Amount calculation (always in cents for the commission block)
         const totalAmountCents = Math.round((normalizedOrder.amount || 0) * 100) || normalizedOrder.amountInCents || 0;
 
+        // Payment Method mapping: credit_card, boleto, pix, paypal, free_price, unknown
+        let utmifyPaymentMethod = 'credit_card';
+        const inputMethod = (normalizedOrder.paymentMethod || '').toLowerCase();
+        if (inputMethod.includes('pix')) utmifyPaymentMethod = 'pix';
+        else if (inputMethod.includes('boleto')) utmifyPaymentMethod = 'boleto';
+        else if (inputMethod.includes('paypal')) utmifyPaymentMethod = 'paypal';
+        else if (inputMethod.includes('free')) utmifyPaymentMethod = 'free_price';
+
+        // Currency mapping: UTMify has a strict list. 
+        // List: BRL, USD, EUR, GBP, ARS, CAD, COP, MXN, PYG, CLP, PEN, PLN, UAH, CHF, THB, AUD
+        // ZAR is NOT supported, so we default to USD
+        let utmifyCurrency = 'USD';
+        const inputCurrency = (normalizedOrder.currency || 'USD').toUpperCase();
+        const supportedCurrencies = ['BRL', 'USD', 'EUR', 'GBP', 'ARS', 'CAD', 'COP', 'MXN', 'PYG', 'CLP', 'PEN', 'PLN', 'UAH', 'CHF', 'THB', 'AUD'];
+        if (supportedCurrencies.includes(inputCurrency)) {
+            utmifyCurrency = inputCurrency;
+        }
+
         // Products mapping with strict requirements: planId and planName
         const products = (normalizedOrder.products || []).map(p => {
             const priceCents = p.priceInCents || Math.round((p.price || 0) * 100);
@@ -49,8 +67,8 @@ export async function sendUtmifyOrder(normalizedOrder) {
 
         const payload = {
             orderId: normalizedOrder.orderId.toString(),
-            platform: platform_name || normalizedOrder.platform || 'NovaPay',
-            paymentMethod: normalizedOrder.paymentMethod || 'credit_card',
+            platform: platform_name || normalizedOrder.platform || 'Shopify',
+            paymentMethod: utmifyPaymentMethod,
             status: utmifyStatus,
             createdAt: normalizedOrder.createdAt || nowIso,
             approvedDate: (utmifyStatus === 'paid') ? (normalizedOrder.approvedDate || nowIso) : null,
@@ -71,7 +89,7 @@ export async function sendUtmifyOrder(normalizedOrder) {
                 total_price_in_cents: totalAmountCents,
                 gatewayFeeInCents: Math.round(totalAmountCents * 0.029),
                 userCommissionInCents: Math.round(totalAmountCents * 0.971),
-                currency: normalizedOrder.currency || 'USD'
+                currency: utmifyCurrency
             }
         };
 
