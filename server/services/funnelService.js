@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import * as funnelRepository from '../repositories/funnelRepository.js';
+import { getIsLiveMode } from './gatewaySettingsService.js';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -101,7 +102,13 @@ export async function getFunnelByProductId(productId) {
 export async function createFunnel(input) {
     const parsed = FunnelSchema.safeParse(input);
     if (!parsed.success) throwValidation(parsed.error.flatten().fieldErrors);
-    return funnelRepository.create(parsed.data);
+
+    const data = parsed.data;
+    if (data.is_live === undefined) {
+        data.is_live = await getIsLiveMode();
+    }
+
+    return funnelRepository.create(data);
 }
 
 export async function updateFunnel(id, input) {

@@ -77,6 +77,47 @@ if (pool) {
     ADD COLUMN IF NOT EXISTS checkout_type TEXT DEFAULT 'physical';
   `).then(() => console.log('[DB] Upsell order columns ensured'))
     .catch(e => console.error('[DB] Error auto-migrating upsell columns:', e.message));
+
+  // Subscriptions table (for recurring upsells)
+  pool.query(`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        customer_email VARCHAR(255) NOT NULL,
+        order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+        product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+        upsell_origin_id UUID REFERENCES products(id) ON DELETE SET NULL,
+        plan_id VARCHAR(255),
+        status VARCHAR(20) DEFAULT 'active',
+        billing_interval VARCHAR(20) DEFAULT 'monthly',
+        subscription_token VARCHAR(255),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `).then(() => console.log('[DB] Subscriptions table ensured'))
+    .catch(e => console.error('[DB] Error auto-migrating subscriptions table:', e.message));
+
+  // Bump click logs table (for analytics)
+  pool.query(`
+    CREATE TABLE IF NOT EXISTS bump_click_logs (
+        id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+        order_id    UUID        REFERENCES orders(id) ON DELETE SET NULL,
+        funnel_id   UUID        REFERENCES funnels(id) ON DELETE SET NULL,
+        bump_id     UUID        REFERENCES funnel_order_bumps(id) ON DELETE SET NULL,
+        product_id  UUID        REFERENCES products(id) ON DELETE SET NULL,
+        action      VARCHAR(20) NOT NULL DEFAULT 'viewed',
+        extra_revenue NUMERIC(12,2) DEFAULT 0,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `).then(() => console.log('[DB] Bump logs table ensured'))
+    .catch(e => console.error('[DB] Error auto-migrating bump logs table:', e.message));
+
+  // Mode separation (is_live)
+  pool.query(`
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT true;
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT true;
+    ALTER TABLE funnels ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT true;
+  `).then(() => console.log('[DB] Mode separation columns (is_live) ensured'))
+    .catch(e => console.error('[DB] Error auto-migrating is_live columns:', e.message));
 }
 
 app.get('/api/db-test', async (req, res) => {

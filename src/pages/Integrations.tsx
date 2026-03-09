@@ -665,6 +665,54 @@ function EmailSection() {
   );
 }
 
+function ShopifySection() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Globe className="h-4 w-4 text-primary" />
+          🛍️ Shopify → UTMify
+          <Badge variant="outline" className="ml-auto text-xs">Shopify Webhook</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Use a NovaPay como ponte para enviar suas vendas da Shopify para a UTMify automaticamente.
+        </p>
+
+        <div className="space-y-1.5 rounded-lg bg-muted p-3">
+          <Label className="text-xs flex items-center gap-1.5">
+            <Link2 className="h-3 w-3" /> URL de Webhook para Shopify
+          </Label>
+          <div className="flex gap-2 mt-1">
+            <Input
+              value={`${window.location.origin}/api/webhooks/shopify`}
+              readOnly
+              className="text-[10px] font-mono bg-background h-8"
+            />
+            <AnimatedButton variant="outline" size="sm" className="h-8 text-[10px]" onClick={() => {
+              navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/shopify`);
+            }}>Copiar</AnimatedButton>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            No Admin Shopify → Configurações → Notificações → Webhooks: <br />
+            Crie webhooks para <b>Criação de pedido</b> e <b>Pagamento de pedido</b> (JSON) usando esta URL.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+          <p className="text-xs font-medium text-primary flex items-center gap-1.5">
+            <CheckCircle className="h-3 w-3" /> Como Funciona
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            A NovaPay receberá os dados da Shopify, formatará no padrão da UTMify (incluindo UTMs) e enviará o postback instantaneamente.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function IntegrationsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
@@ -677,6 +725,7 @@ export default function IntegrationsPage() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-6">
+          <ShopifySection />
           <PaystackSection />
           <EmailSection />
         </div>
@@ -688,3 +737,4 @@ export default function IntegrationsPage() {
     </div>
   );
 }
+

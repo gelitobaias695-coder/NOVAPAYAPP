@@ -13,11 +13,14 @@ export async function initializePayment(req, res, next) {
 // POST /api/paystack/upsell-charge
 export async function upsellCharge(req, res, next) {
     try {
-        const { order_id, upsell_product_id, email } = req.body;
+        const { order_id, upsell_product_id, email, utm_source, utm_medium, utm_campaign, utm_content, utm_term, src } = req.body;
         if (!order_id || !upsell_product_id) {
             return res.status(400).json({ error: 'order_id and upsell_product_id are required' });
         }
-        const data = await paystackService.chargeUpsell({ order_id, upsell_product_id, email });
+        const data = await paystackService.chargeUpsell({
+            order_id, upsell_product_id, email,
+            utm_source, utm_medium, utm_campaign, utm_content, utm_term, src
+        });
         res.status(200).json({ data });
     } catch (err) { next(err); }
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import * as productRepository from '../repositories/productRepository.js';
+import { getIsLiveMode } from './gatewaySettingsService.js';
 
 export const CreateProductSchema = z.object({
     name: z.string().min(1, 'Name is required').max(255),
@@ -24,6 +25,7 @@ export const CreateProductSchema = z.object({
     success_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
     email_sender_name: z.string().max(255).optional().or(z.literal('')),
     email_sender_email: z.string().email('Invalid sender email format').optional().or(z.literal('')),
+    is_live: z.boolean().optional(),
 });
 
 export async function listProducts() {
@@ -51,7 +53,12 @@ export async function createProduct(input) {
         throw err;
     }
 
-    return productRepository.create(parsed.data);
+    const data = parsed.data;
+    if (data.is_live === undefined) {
+        data.is_live = await getIsLiveMode();
+    }
+
+    return productRepository.create(data);
 }
 
 export async function updateProduct(id, input) {

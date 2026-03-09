@@ -175,6 +175,7 @@ export default function CheckoutPhysical({ product }: Props) {
             if (currentOrderId && !orderId) setOrderId(currentOrderId);
 
             // 2. Comunicar com a API Paystack para renderizar a página de pagamento
+            const searchParams = typeof window !== 'undefined' ? window.location.search : '';
             const resPaystack = await fetch('/api/paystack/initialize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -183,7 +184,7 @@ export default function CheckoutPhysical({ product }: Props) {
                     email: form.email,
                     currency: product.currency, // Dinâmico pelo produto!
                     // Redireciona de volta com o success flow para exibir o Upsell Banner (se tiver) ou Página de Obrigado
-                    callback_url: `${window.location.origin}/checkout/sucesso?order_id=${currentOrderId}`
+                    callback_url: `${window.location.origin}/checkout/sucesso${searchParams}${searchParams ? '&' : '?'}order_id=${currentOrderId}`
                 })
             });
 

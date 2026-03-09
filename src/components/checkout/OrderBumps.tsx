@@ -237,6 +237,7 @@ export interface UpsellBannerProps {
 export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor, mainProductCurrency, lang = 'pt' }: UpsellBannerProps) {
     const [dismissed, setDismissed] = useState(false);
     const [isSubscribing, setIsSubscribing] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const t = useTranslation(lang, 'upsell');
 
     if (dismissed) return null;
@@ -255,9 +256,10 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
     };
 
     const handleAccept = async () => {
-        setIsSubscribing(true); // Reusing this for loading state
+        setIsSubscribing(true);
         try {
             if (upsell.is_recurring) {
+                const params = new URLSearchParams(window.location.search);
                 const res = await fetch('/api/upsells/subscribe', {
                     method: 'POST',
                     headers: { "Content-Type": "application/json" },
@@ -265,20 +267,33 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
                         order_id: orderId,
                         upsell_product_id: upsell.product_id,
                         billing_interval: cycle,
-                        trial_days: upsell.trial_days || 0
+                        trial_days: upsell.trial_days || 0,
+                        utm_source: params.get("utm_source"),
+                        utm_medium: params.get("utm_medium"),
+                        utm_campaign: params.get("utm_campaign"),
+                        utm_content: params.get("utm_content"),
+                        utm_term: params.get("utm_term"),
+                        src: params.get("src") || params.get("sck") || params.get("ref"),
                     })
                 });
 
                 if (!res.ok) throw new Error('Falha na assinatura');
-                logBumpAction({ order_id: orderId, funnel_id: funnelId, action: 'accepted', extra_revenue: price });
+                await logBumpAction({ order_id: orderId, funnel_id: funnelId, action: 'accepted', extra_revenue: price });
             } else {
-                // Flow for One-Click One-Off Upsell
+                // Include current UTMs in the request for better tracking
+                const params = new URLSearchParams(window.location.search);
                 const res = await fetch('/api/paystack/upsell-charge', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         order_id: orderId,
-                        upsell_product_id: upsell.product_id
+                        upsell_product_id: upsell.product_id,
+                        utm_source: params.get("utm_source"),
+                        utm_medium: params.get("utm_medium"),
+                        utm_campaign: params.get("utm_campaign"),
+                        utm_content: params.get("utm_content"),
+                        utm_term: params.get("utm_term"),
+                        src: params.get("src") || params.get("sck") || params.get("ref"),
                     })
                 });
 
@@ -286,15 +301,58 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
                     const errData = await res.json();
                     throw new Error(errData.error || 'Falha ao processar cobrança do One-Click Upsell.');
                 }
-                logBumpAction({ order_id: orderId, funnel_id: funnelId, action: 'accepted', extra_revenue: price });
+                await logBumpAction({ order_id: orderId, funnel_id: funnelId, action: 'accepted', extra_revenue: price });
             }
 
             // Success redirection
             if (upsell.upsell_page_url) {
-                window.location.href = `${upsell.upsell_page_url}?order_id=${orderId}&product=${upsell.product_name ?? ''}&status=success`;
+                setIsSubscribing(false);
+                setIsSuccess(true);
+
+                // Fire FB Pixel locally for the upsell
+                const win = window as any;
+                if (win.fbq) {
+                    let currency = (mainProductCurrency || 'ZAR').toUpperCase().trim();
+                    if (currency === 'KSH') currency = 'KES';
+                    if (currency === 'MT') currency = 'MZN';
+
+                    win.fbq('track', 'Purchase', {
+                        content_name: upsell.product_name,
+                        content_ids: [upsell.product_id],
+                        content_type: 'product',
+                        value: price,
+                        currency: currency
+                    }, { eventID: `upsell-${orderId}` });
+                }
+
+                setTimeout(() => {
+                    const searchParams = new URL(window.location.href).search;
+                    const sep = upsell.upsell_page_url!.includes('?') ? '&' : '?';
+                    window.location.href = `${upsell.upsell_page_url}${sep}order_id=${orderId}&product=${upsell.product_name ?? ''}&status=success${searchParams.replace('?', '&')}`;
+                }, 1200);
             } else {
-                setDismissed(true);
-                alert("Adicionado com sucesso!");
+                setIsSubscribing(false);
+                setIsSuccess(true);
+
+                // Fire FB Pixel locally for the upsell
+                const win = window as any;
+                if (win.fbq) {
+                    let currency = (mainProductCurrency || 'ZAR').toUpperCase().trim();
+                    if (currency === 'KSH') currency = 'KES';
+                    if (currency === 'MT') currency = 'MZN';
+
+                    win.fbq('track', 'Purchase', {
+                        content_name: upsell.product_name,
+                        content_ids: [upsell.product_id],
+                        content_type: 'product',
+                        value: price,
+                        currency: currency
+                    }, { eventID: `upsell-${orderId}` });
+                }
+
+                setTimeout(() => {
+                    setDismissed(true);
+                }, 2000);
             }
         } catch (err) {
             console.error(err);
@@ -320,9 +378,18 @@ export function UpsellBanner({ upsell, downsell, orderId, funnelId, primaryColor
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
             {isSubscribing && (
                 <div className="absolute inset-0 z-[110] bg-white/50 backdrop-blur-md flex flex-col items-center justify-center rounded-2xl">
-                    <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+                    <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: `${primaryColor} transparent ${primaryColor} ${primaryColor}` }} />
                     <p className="text-zinc-900 font-bold text-lg">{t.processingSubscription}</p>
                     <p className="text-sm text-zinc-600">{t.dontClose}</p>
+                </div>
+            )}
+            {isSuccess && (
+                <div className="absolute inset-0 z-[110] bg-white/80 backdrop-blur-md flex flex-col items-center justify-center rounded-2xl animate-in fade-in zoom-in duration-300">
+                    <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-bounce-subtle">
+                        <CheckCircle className="h-10 w-10 text-green-600" />
+                    </div>
+                    <p className="text-zinc-900 font-bold text-xl">Adicionado com Sucesso!</p>
+                    <p className="text-sm text-zinc-600 mt-1">Preparando tudo para você...</p>
                 </div>
             )}
             <div className={`bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 relative ${isSubscribing ? 'opacity-50 pointer-events-none' : ''}`}>

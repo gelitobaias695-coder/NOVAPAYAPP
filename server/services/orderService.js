@@ -15,7 +15,8 @@ export const CreateOrderSchema = z.object({
     status: z.enum(['pending', 'success', 'abandoned']).optional(),
     bump_products: z.array(z.string().uuid()).optional().default([]),
     src: z.string().nullable().optional(),
-    client_ip_address: z.string().optional()
+    client_ip_address: z.string().optional(),
+    is_live: z.boolean().optional(),
 }).passthrough();
 
 export async function createOrder(input) {
@@ -53,7 +54,8 @@ export async function createOrder(input) {
         ...orderData,
         amount: finalAmount,
         currency: product.currency,
-        status: orderData.status ?? 'success' // Defaulting to success unless specified
+        status: orderData.status ?? 'success',
+        is_live: product.is_live
     });
 
     return newOrder;

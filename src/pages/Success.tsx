@@ -48,12 +48,17 @@ export default function SuccessPage() {
         if (order && (order.status === 'success' || order.status === 'paid')) {
             const win = window as unknown as { fbq?: (...args: unknown[]) => void };
             if (win.fbq) {
+                // Normalize currency for Meta Pixel (MUST be ISO 4217)
+                let currency = (order.currency || 'ZAR').toUpperCase().trim();
+                if (currency === 'KSH') currency = 'KES';
+                if (currency === 'MT') currency = 'MZN';
+
                 win.fbq('track', 'Purchase', {
                     content_name: order.product_name || "Produto",
                     content_ids: [order.product_id],
                     content_type: 'product',
                     value: parseFloat(order.total_amount || order.price || '0'),
-                    currency: order.currency || 'ZAR'
+                    currency: currency
                 }, { eventID: order.id });
             }
 
@@ -166,7 +171,7 @@ export default function SuccessPage() {
             {order.status === 'success' && upsell && (
                 <UpsellBanner
                     upsell={upsell}
-                    orderId={orderId!}
+                    orderId={order.id}
                     funnelId={funnel?.id}
                     primaryColor={order.primary_color || '#10B981'}
                     mainProductCurrency={order.currency || 'ZAR'}

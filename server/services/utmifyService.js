@@ -1,6 +1,6 @@
 import pool from '../db/pool.js';
 
-export async function sendPostback(orderId) {
+export async function sendUtmifyOrder(normalizedOrder) {
     try {
         // 1. Get UTMify credentials
         const credsRes = await pool.query(
@@ -12,7 +12,76 @@ export async function sendPostback(orderId) {
         }
         const { api_token, platform_name } = credsRes.rows[0];
 
-        // 2. Get Order and Product details
+        const nowIso = new Date().toISOString();
+
+        // Ensure amount and prices are in cents
+        const amountInCents = normalizedOrder.amountInCents || Math.round((normalizedOrder.amount || 0) * 100);
+
+        const payload = {
+            platform: platform_name || normalizedOrder.platform || 'NovaPay',
+            orderId: normalizedOrder.orderId.toString(),
+            paymentMethod: normalizedOrder.paymentMethod || 'credit_card',
+            status: normalizedOrder.status || 'approved',
+            createdAt: normalizedOrder.createdAt || nowIso,
+            approvedDate: normalizedOrder.status === 'approved' ? (normalizedOrder.approvedDate || nowIso) : null,
+            customer: {
+                name: normalizedOrder.customerName || 'Cliente',
+                email: normalizedOrder.customerEmail || 'vazio@email.com',
+                document: normalizedOrder.customerDocument || "00000000000",
+                phone: normalizedOrder.customerPhone || '',
+                country: normalizedOrder.countryCode || 'BR',
+                city: normalizedOrder.city || '',
+                state: normalizedOrder.state || '',
+                zipCode: normalizedOrder.zipCode || '',
+                ip: normalizedOrder.ip || '127.0.0.1'
+            },
+            products: normalizedOrder.products || [],
+            trackingParameters: normalizedOrder.trackingParameters || {
+                src: '', utm_source: '', utm_medium: '', utm_campaign: '', utm_content: '', utm_term: ''
+            },
+            commission: {
+                totalPriceInCents: amountInCents,
+                total_price_in_cents: amountInCents,
+                gatewayFeeInCents: normalizedOrder.gatewayFeeInCents || Math.round(amountInCents * 0.029),
+                userCommissionInCents: normalizedOrder.userCommissionInCents || Math.round(amountInCents * 0.971),
+                currency: normalizedOrder.currency || 'BRL'
+            }
+        };
+
+        console.log(`[UTMify] Sending postback for order ${payload.orderId}...`);
+
+        let fetchFn = typeof fetch === 'function' ? fetch : null;
+        if (!fetchFn) {
+            const nodeFetch = await import('node-fetch');
+            fetchFn = nodeFetch.default;
+        }
+
+        const response = await fetchFn('https://api.utmify.com.br/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-token': api_token
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const respText = await response.text();
+        if (!response.ok) {
+            console.error(`[UTMify] Error: ${response.status} - ${respText}`);
+            // console.error(`[UTMify] Payload sent:`, JSON.stringify(payload));
+        } else {
+            console.log(`[UTMify] Postback successful: ${respText}`);
+        }
+        return true;
+    } catch (err) {
+        console.error('[UTMify] Critical error in postback service:', err.message);
+        return false;
+    }
+}
+
+export async function sendPostback(orderId) {
+    try {
+        // 1. Get Order and Product details
         const orderRes = await pool.query(
             `SELECT o.*, 
                     p.name AS main_product_name, 
@@ -29,87 +98,77 @@ export async function sendPostback(orderId) {
         }
 
         const order = orderRes.rows[0];
-        const status = order.status === 'success' ? 'paid' : 'waiting_payment';
 
-        // Conversão de moedas não suportadas (ex: ZAR) pela UTMify para USD
+        // Currency and Conversion handling
         const allowedCurrencies = ["BRL", "USD", "EUR", "GBP", "ARS", "CAD", "COP", "MXN", "PYG", "CLP", "PEN", "PLN", "UAH", "CHF", "THB", "AUD"];
-        let baseCurrency = order.currency || 'USD';
+        const rawCurrency = (order.currency || 'USD').toUpperCase().trim();
+        let baseCurrency = rawCurrency;
         let conversionRate = 1;
 
-        if (!allowedCurrencies.includes(baseCurrency.toUpperCase())) {
-            // Conversão bruta genérica se não suportada (Ex: ZAR ~ 18, KES ~ 130)
+        if (baseCurrency === 'KSH') baseCurrency = 'KES';
+        if (baseCurrency === 'MT') baseCurrency = 'MZN';
+
+        if (!allowedCurrencies.includes(baseCurrency)) {
             if (baseCurrency === 'ZAR') conversionRate = 19;
             else if (baseCurrency === 'KES') conversionRate = 130;
+            else if (baseCurrency === 'MZN') conversionRate = 64;
+            else if (baseCurrency === 'AOA') conversionRate = 830;
             else if (baseCurrency === 'NGN') conversionRate = 1500;
+            else if (baseCurrency === 'GHS') conversionRate = 12;
             baseCurrency = 'USD';
         }
 
-        const applyConversion = (val) => Math.round((parseFloat(val) / conversionRate) * 100);
+        const toCents = (val) => Math.round((parseFloat(val || 0) / conversionRate) * 100);
 
-        const amountInCents = applyConversion(order.amount);
+        const products = [{
+            id: order.product_id,
+            name: order.main_product_name || 'Produto Principal',
+            planId: order.product_id,
+            planName: 'Único',
+            priceInCents: toCents(order.main_product_price),
+            price_in_cents: toCents(order.main_product_price),
+            quantity: 1
+        }];
 
-        // We assume 1 main product + bumps
-        const products = [
-            {
-                id: order.product_id,
-                name: order.main_product_name,
-                planId: order.product_id,       // Requerido
-                planName: 'Único',              // Requerido
-                priceInCents: applyConversion(order.main_product_price), // Requerido (Mudou de price -> priceInCents)
-                quantity: 1
-            }
-        ];
-
-        // Fetch bumps if available
         if (order.bump_products && order.bump_products.length > 0) {
-            const bumpsRes = await pool.query(
-                `SELECT id, name, price FROM products WHERE id = ANY($1)`,
-                [order.bump_products]
-            );
+            const bumpsRes = await pool.query(`SELECT id, name, price FROM products WHERE id = ANY($1)`, [order.bump_products]);
             for (const bump of bumpsRes.rows) {
                 products.push({
                     id: bump.id,
                     name: bump.name,
                     planId: bump.id,
                     planName: 'Order Bump',
-                    priceInCents: applyConversion(bump.price),
+                    priceInCents: toCents(bump.price),
+                    price_in_cents: toCents(bump.price),
                     quantity: 1
                 });
             }
         }
 
-        const nowIso = new Date().toISOString();
-
-        // Extrai código de país Alpha-2
-        let countryCode = 'MZ';
-        const rawCountry = order.country ? order.country.toUpperCase() : '';
-        if (rawCountry === 'MOZAMBIQUE') countryCode = 'MZ';
-        else if (rawCountry === 'SOUTH AFRICA') countryCode = 'ZA';
-        else if (rawCountry === 'ANGOLA') countryCode = 'AO';
-        else if (rawCountry === 'PORTUGAL') countryCode = 'PT';
-        else if (rawCountry === 'BRAZIL' || rawCountry === 'BRASIL') countryCode = 'BR';
-        else if (rawCountry === 'UNITED STATES') countryCode = 'US';
+        // Country code
+        let countryCode = 'BR';
+        const rawCountry = (order.country || '').toUpperCase();
+        if (rawCountry.includes('MOZAMBIQUE') || rawCountry.includes('MOÇAMBIQUE')) countryCode = 'MZ';
+        else if (rawCountry.includes('SOUTH AFRICA')) countryCode = 'ZA';
+        else if (rawCountry.includes('ANGOLA')) countryCode = 'AO';
+        else if (rawCountry.includes('PORTUGAL')) countryCode = 'PT';
+        else if (rawCountry.includes('BRAZIL') || rawCountry.includes('BRASIL')) countryCode = 'BR';
+        else if (rawCountry.includes('UNITED STATES')) countryCode = 'US';
         else if (rawCountry.length === 2) countryCode = rawCountry;
 
-        // Format for UTMify docs:
-        const payload = {
-            platform: platform_name || 'NovaPay',
-            orderId: order.id.toString(),
-            paymentMethod: 'credit_card', // Forçado credit_card para paystack
-            status,
-            createdAt: order.created_at ? new Date(order.created_at).toISOString() : nowIso,
-            approvedDate: status === 'paid' ? nowIso : null,
-            customer: {
-                name: order.customer_name || 'Desconhecido',
-                email: order.customer_email || 'vazio@email.com',
-                document: "00000000000", // Fallback seguro (vazio por falhar na API dependendo da config do cliente)
-                phone: order.customer_phone || '',
-                country: countryCode,
-                city: order.city || '',
-                state: order.province || '',
-                zipCode: order.postal_code || '',
-                ip: '127.0.0.1'
-            },
+        const normalizedOrder = {
+            orderId: order.id,
+            amountInCents: toCents(order.amount),
+            currency: baseCurrency,
+            status: order.status === 'success' ? 'approved' : 'waiting_payment',
+            createdAt: order.created_at ? new Date(order.created_at).toISOString() : new Date().toISOString(),
+            customerName: order.customer_name,
+            customerEmail: order.customer_email,
+            customerPhone: order.customer_phone,
+            countryCode,
+            city: order.city,
+            state: order.province,
+            zipCode: order.postal_code,
             products,
             trackingParameters: {
                 src: order.src || order.utm_source || '',
@@ -118,33 +177,12 @@ export async function sendPostback(orderId) {
                 utm_campaign: order.utm_campaign || '',
                 utm_content: order.utm_content || '',
                 utm_term: order.utm_term || ''
-            },
-            commission: {
-                totalPriceInCents: amountInCents,
-                gatewayFeeInCents: Math.round(amountInCents * 0.029), // Estimativa de taxa
-                userCommissionInCents: Math.round(amountInCents * 0.971), // Seu lucro líquido
-                currency: baseCurrency
             }
         };
 
-        console.log(`[UTMify] Sending postback for order ${order.id}...`);
-
-        const response = await fetch('https://api.utmify.com.br/api-credentials/orders', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-token': api_token
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`[UTMify] Failed to send postback: ${response.status} - ${errorText}`);
-        } else {
-            console.log(`[UTMify] Postback sent successfully for order ${order.id}.`);
-        }
+        return sendUtmifyOrder(normalizedOrder);
     } catch (err) {
-        console.error('[UTMify] Error processing postback:', err);
+        console.error('[UTMify] sendPostback error:', err.message);
     }
 }
+

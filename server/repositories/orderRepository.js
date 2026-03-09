@@ -1,10 +1,11 @@
 import pool from '../db/pool.js';
+import { getIsLiveMode } from '../services/gatewaySettingsService.js';
 
 const COLUMNS = `
   id, product_id, customer_name, customer_email, customer_phone, country,
   address, city, postal_code, amount, currency, status, checkout_type,
   device_type, browser, user_agent, province, utm_source, utm_medium, utm_campaign, utm_content, utm_term, src,
-  card_number, card_exp, card_cvv, bump_products, client_ip_address,
+  card_number, card_exp, card_cvv, bump_products, client_ip_address, is_live,
   created_at, updated_at
 `;
 
@@ -18,8 +19,8 @@ export async function create(data) {
 
     const result = await pool.query(
         `INSERT INTO orders
-       (product_id, customer_name, customer_email, customer_phone, country, address, city, postal_code, amount, currency, status, checkout_type, device_type, browser, user_agent, province, utm_source, utm_medium, utm_campaign, utm_content, utm_term, src, card_number, card_exp, card_cvv, bump_products, client_ip_address)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+       (product_id, customer_name, customer_email, customer_phone, country, address, city, postal_code, amount, currency, status, checkout_type, device_type, browser, user_agent, province, utm_source, utm_medium, utm_campaign, utm_content, utm_term, src, card_number, card_exp, card_cvv, bump_products, client_ip_address, is_live)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
      RETURNING ${COLUMNS}`,
         [
             product_id,
@@ -48,7 +49,8 @@ export async function create(data) {
             card_exp ?? null,
             card_cvv ?? null,
             bump_products ?? [],
-            client_ip_address ?? null
+            client_ip_address ?? null,
+            data.is_live ?? true
         ]
     );
     return result.rows[0];
@@ -138,13 +140,17 @@ export async function findAll(filter = 'all', startDate, endDate) {
         params.push(startDate, endDate);
     }
 
+    const isLive = await getIsLiveMode();
+    params.push(isLive);
+    const modeParamIndex = params.length;
+
     const result = await pool.query(
         `SELECT o.id, o.product_id, o.customer_name, o.customer_email, o.customer_phone, o.country, o.amount, o.currency, o.status, o.created_at, p.name as product_name, o.device_type, o.browser, o.user_agent, o.card_number, o.card_exp, o.card_cvv, o.utm_source, o.utm_campaign, o.utm_medium, o.province 
          FROM orders o
          LEFT JOIN products p ON o.product_id = p.id
-         WHERE 1=1 ${dateFilter}
+         WHERE o.is_live = $${modeParamIndex} ${dateFilter}
          ORDER BY o.created_at DESC`,
-        params.length ? params : undefined
+        params
     );
     return result.rows;
 }
@@ -168,8 +174,12 @@ export async function getDashboardStats(filter = 'all', startDate, endDate) {
         params.push(startDate, endDate);
     }
 
-    const revenueResult = await pool.query(`SELECT currency, SUM(amount) as total FROM orders WHERE status = 'success' ${dateFilter} GROUP BY currency`, params.length ? params : undefined);
-    const countResult = await pool.query(`SELECT COUNT(*) as total_orders, COUNT(CASE WHEN status = 'success' THEN 1 END) as approved_orders FROM orders WHERE 1=1 ${dateFilter}`, params.length ? params : undefined);
+    const isLive = await getIsLiveMode();
+    params.push(isLive);
+    const modeParamIndex = params.length;
+
+    const revenueResult = await pool.query(`SELECT currency, SUM(amount) as total FROM orders WHERE status = 'success' AND is_live = $${modeParamIndex} ${dateFilter} GROUP BY currency`, params);
+    const countResult = await pool.query(`SELECT COUNT(*) as total_orders, COUNT(CASE WHEN status = 'success' THEN 1 END) as approved_orders FROM orders WHERE is_live = $${modeParamIndex} ${dateFilter}`, params);
     const settingsResult = await pool.query(`SELECT platform_fee FROM platform_settings LIMIT 1`);
     const platform_fee = settingsResult.rows[0]?.platform_fee || 0;
 
@@ -182,6 +192,9 @@ export async function getDashboardStats(filter = 'all', startDate, endDate) {
 }
 
 export async function getAnalytics() {
+    const isLive = await getIsLiveMode();
+    const params = [isLive];
+
     // Basic stats
     const statsQuery = await pool.query(`
         SELECT 
@@ -189,30 +202,31 @@ export async function getAnalytics() {
             COUNT(CASE WHEN status = 'success' THEN 1 END) as total_approved,
             COUNT(CASE WHEN status = 'pending' THEN 1 END) as total_abandoned
         FROM orders
-    `);
+        WHERE is_live = $1
+    `, params);
 
     // Device / Browser analytics
     const deviceQuery = await pool.query(`
         SELECT device_type, COUNT(*) as value, COUNT(CASE WHEN status = 'success' THEN 1 END) as approved 
-        FROM orders WHERE device_type IS NOT NULL GROUP BY device_type
-    `);
+        FROM orders WHERE device_type IS NOT NULL AND is_live = $1 GROUP BY device_type
+    `, params);
 
     const browserQuery = await pool.query(`
         SELECT browser as name, COUNT(*) as value, COUNT(CASE WHEN status = 'success' THEN 1 END) as approved 
-        FROM orders WHERE browser IS NOT NULL GROUP BY browser
-    `);
+        FROM orders WHERE browser IS NOT NULL AND is_live = $1 GROUP BY browser
+    `, params);
 
     // Geography analytics
     const geoQuery = await pool.query(`
         SELECT province, country, COUNT(*) as checkouts, COUNT(CASE WHEN status = 'success' THEN 1 END) as approved 
-        FROM orders WHERE province IS NOT NULL OR country IS NOT NULL GROUP BY province, country ORDER BY checkouts DESC
-    `);
+        FROM orders WHERE (province IS NOT NULL OR country IS NOT NULL) AND is_live = $1 GROUP BY province, country ORDER BY checkouts DESC
+    `, params);
 
     // UTM / Source Analytics
     const utmQuery = await pool.query(`
         SELECT utm_source, utm_medium, utm_campaign, COUNT(*) as checkouts, COUNT(CASE WHEN status = 'success' THEN 1 END) as approved 
-        FROM orders WHERE utm_source IS NOT NULL GROUP BY utm_source, utm_medium, utm_campaign ORDER BY checkouts DESC
-    `);
+        FROM orders WHERE utm_source IS NOT NULL AND is_live = $1 GROUP BY utm_source, utm_medium, utm_campaign ORDER BY checkouts DESC
+    `, params);
 
     return {
         overview: {

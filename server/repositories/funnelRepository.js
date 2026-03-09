@@ -1,14 +1,17 @@
 import pool from '../db/pool.js';
+import { getIsLiveMode } from '../services/gatewaySettingsService.js';
 
 // ─── Funnels ──────────────────────────────────────────────────────────────────
 
 export async function findAll() {
+    const isLive = await getIsLiveMode();
     const result = await pool.query(`
         SELECT f.*, p.name AS main_product_name, p.price AS main_product_price, p.currency AS main_product_currency
         FROM funnels f
         LEFT JOIN products p ON f.main_product_id = p.id
+        WHERE f.is_live = $1
         ORDER BY f.created_at DESC
-    `);
+    `, [isLive]);
     return result.rows;
 }
 
@@ -89,8 +92,8 @@ export async function create(data) {
         await client.query('BEGIN');
 
         const funnelRes = await client.query(
-            `INSERT INTO funnels (name, main_product_id, redirect_url) VALUES ($1, $2, $3) RETURNING *`,
-            [name, main_product_id, redirect_url || null]
+            `INSERT INTO funnels (name, main_product_id, redirect_url, is_live) VALUES ($1, $2, $3, $4) RETURNING *`,
+            [name, main_product_id, redirect_url || null, data.is_live ?? true]
         );
         const funnel = funnelRes.rows[0];
 

@@ -46,7 +46,18 @@ export async function deleteFunnel(req, res, next) {
 // POST /api/funnels/bump-log
 export async function logBumpAction(req, res, next) {
     try {
-        const log = await funnelService.logBumpAction(req.body);
+        const { order_id, funnel_id, bump_id, product_id, ...rest } = req.body;
+
+        // Sanitize UUID fields (empty string to null)
+        const sanitized = {
+            ...rest,
+            order_id: (order_id && order_id !== '') ? order_id : null,
+            funnel_id: (funnel_id && funnel_id !== '') ? funnel_id : null,
+            bump_id: (bump_id && bump_id !== '') ? bump_id : null,
+            product_id: (product_id && product_id !== '') ? product_id : null,
+        };
+
+        const log = await funnelService.logBumpAction(sanitized);
         res.status(201).json({ data: log });
     } catch (err) { next(err); }
 }

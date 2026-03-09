@@ -1,17 +1,20 @@
 import pool from '../db/pool.js';
+import { getIsLiveMode } from '../services/gatewaySettingsService.js';
 
 const COLUMNS = `
   id, name, description, price, currency, status,
   type, logo_url, product_image_url, primary_color, require_whatsapp,
-  checkout_language, is_bump, success_url, email_sender_name, email_sender_email, created_at, updated_at
+  checkout_language, is_bump, success_url, email_sender_name, email_sender_email, is_live, created_at, updated_at
 `;
 
 /**
  * Fetch all products ordered by newest first.
  */
 export async function findAll() {
+    const isLive = await getIsLiveMode();
     const result = await pool.query(
-        `SELECT ${COLUMNS} FROM products ORDER BY created_at DESC`
+        `SELECT ${COLUMNS} FROM products WHERE is_live = $1 ORDER BY created_at DESC`,
+        [isLive]
     );
     return result.rows;
 }
@@ -36,13 +39,14 @@ export async function create(data) {
     const {
         name, description, price, currency, status,
         type, logo_url, product_image_url, primary_color, require_whatsapp,
-        checkout_language, success_url, email_sender_name, email_sender_email
+        checkout_language, success_url, email_sender_name, email_sender_email,
+        is_live
     } = data;
 
     const result = await pool.query(
         `INSERT INTO products
-       (name, description, price, currency, status, type, logo_url, product_image_url, primary_color, require_whatsapp, checkout_language, success_url, email_sender_name, email_sender_email)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       (name, description, price, currency, status, type, logo_url, product_image_url, primary_color, require_whatsapp, checkout_language, success_url, email_sender_name, email_sender_email, is_live)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
      RETURNING ${COLUMNS}`,
         [
             name,
@@ -58,7 +62,8 @@ export async function create(data) {
             checkout_language ?? 'pt',
             success_url ?? null,
             email_sender_name ?? null,
-            email_sender_email ?? null
+            email_sender_email ?? null,
+            is_live ?? true
         ]
     );
     return result.rows[0];
