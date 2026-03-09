@@ -31,6 +31,7 @@ if (process.env.DATABASE_URL) {
 const app = express();
 app.use(cors());
 app.use(express.json({
+  limit: '10mb',
   verify: (req, res, buf) => {
     req.rawBody = buf;
   }

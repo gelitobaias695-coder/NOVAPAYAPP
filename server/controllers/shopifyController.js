@@ -12,12 +12,18 @@ export async function handleWebhook(req, res) {
         const supportedTopics = ['orders/paid', 'orders/create', 'orders/fulfilled', 'orders/partially_paid'];
 
         if (supportedTopics.includes(topic)) {
-            console.log(`[Shopify] Processing order ${orderData.id || orderData.order_number} for UTMify tracking...`);
+            console.log(`[Shopify] Processing order ${orderData.id || orderData.order_number}...`);
+            console.log(`[Shopify Debug] Note Attributes:`, JSON.stringify(orderData.note_attributes || []));
+            console.log(`[Shopify Debug] Landing Site:`, orderData.landing_site);
 
             // Extract UTM params from various possible locations in Shopify payload
             const noteAttributes = orderData.note_attributes || [];
             const findAttr = (name) => {
-                const attr = noteAttributes.find(a => a.name === name || a.name === `_${name}`);
+                const attr = noteAttributes.find(a =>
+                    a.name.toLowerCase() === name.toLowerCase() ||
+                    a.name.toLowerCase() === `_${name.toLowerCase()}` ||
+                    a.name.toLowerCase() === name.toLowerCase().replace('utm_', '')
+                );
                 return attr ? attr.value : '';
             };
 
