@@ -95,7 +95,9 @@ export async function sendUtmifyOrder(normalizedOrder) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-token': api_token
+                'x-api-token': api_token,
+                'api-token': api_token,
+                'Authorization': `Bearer ${api_token}`
             },
             body: JSON.stringify(payload)
         });
