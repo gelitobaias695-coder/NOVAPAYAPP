@@ -29,10 +29,22 @@ export async function sendUtmifyOrder(normalizedOrder) {
             utmifyStatus = 'refused';
         }
 
-        // Amount calculation (always in cents for the commission block)
-        const totalAmountCents = Math.round((normalizedOrder.amount || 0) * 100) || normalizedOrder.amountInCents || 0;
+        // --- CURRENCY CONVERSION (ZAR -> USD) ---
+        let conversionRate = 1;
+        if (normalizedOrder.currency === 'ZAR' || !normalizedOrder.currency) {
+            try {
+                const { getRates } = await import('./exchangeRatesService.js');
+                const rates = await getRates();
+                conversionRate = rates['ZAR'] || 17; // Use 17 as safe fallback
+            } catch (e) {
+                conversionRate = 17;
+            }
+        }
 
-        // Payment Method mapping: credit_card, boleto, pix, paypal, free_price, unknown
+        const toCents = (val) => Math.round((parseFloat(val || 0) / conversionRate) * 100);
+        const totalAmountCents = toCents(normalizedOrder.amount || (normalizedOrder.amountInCents / 100));
+
+        // Payment Method mapping
         let utmifyPaymentMethod = 'credit_card';
         const inputMethod = (normalizedOrder.paymentMethod || '').toLowerCase();
         if (inputMethod.includes('pix')) utmifyPaymentMethod = 'pix';
@@ -40,9 +52,7 @@ export async function sendUtmifyOrder(normalizedOrder) {
         else if (inputMethod.includes('paypal')) utmifyPaymentMethod = 'paypal';
         else if (inputMethod.includes('free')) utmifyPaymentMethod = 'free_price';
 
-        // Currency mapping: UTMify has a strict list. 
-        // List: BRL, USD, EUR, GBP, ARS, CAD, COP, MXN, PYG, CLP, PEN, PLN, UAH, CHF, THB, AUD
-        // ZAR is NOT supported, so we default to USD
+        // Currency mapping (UTMify mandatory list)
         let utmifyCurrency = 'USD';
         const inputCurrency = (normalizedOrder.currency || 'USD').toUpperCase();
         const supportedCurrencies = ['BRL', 'USD', 'EUR', 'GBP', 'ARS', 'CAD', 'COP', 'MXN', 'PYG', 'CLP', 'PEN', 'PLN', 'UAH', 'CHF', 'THB', 'AUD'];
@@ -50,14 +60,15 @@ export async function sendUtmifyOrder(normalizedOrder) {
             utmifyCurrency = inputCurrency;
         }
 
-        // Products mapping with strict requirements: planId and planName
+        // Products mapping
         const products = (normalizedOrder.products || []).map(p => {
-            const priceCents = p.priceInCents || Math.round((p.price || 0) * 100);
+            const priceInOrigCurrency = p.price || (p.priceInCents / 100);
+            const priceCents = toCents(priceInOrigCurrency);
             return {
                 id: p.id?.toString() || '1',
                 name: p.name || 'Produto',
                 quantity: parseInt(p.quantity || 1),
-                price: priceCents / 100, // Still sending float as backup
+                price: priceCents / 100,
                 priceInCents: priceCents,
                 price_in_cents: priceCents,
                 planId: p.id?.toString() || p.variant_id?.toString() || 'plan_1',
@@ -83,7 +94,6 @@ export async function sendUtmifyOrder(normalizedOrder) {
             trackingParameters: normalizedOrder.trackingParameters || {
                 src: '', utm_source: '', utm_medium: '', utm_campaign: '', utm_content: '', utm_term: ''
             },
-            // CRITICAL: Schema validation requires this specific block
             commission: {
                 totalPriceInCents: totalAmountCents,
                 total_price_in_cents: totalAmountCents,
@@ -93,7 +103,7 @@ export async function sendUtmifyOrder(normalizedOrder) {
             }
         };
 
-        console.log(`[UTMify] Sending postback for order ${payload.orderId} (Status: ${utmifyStatus})...`);
+        console.log(`[UTMify] Sending postback for order ${payload.orderId} (${normalizedOrder.currency} -> ${utmifyCurrency})...`);
 
         let fetchFn = typeof fetch === 'function' ? fetch : null;
         if (!fetchFn) {
@@ -101,7 +111,6 @@ export async function sendUtmifyOrder(normalizedOrder) {
             fetchFn = nodeFetch.default;
         }
 
-        // Endpoint confirmed by logs
         const response = await fetchFn('https://api.utmify.com.br/api-credentials/orders', {
             method: 'POST',
             headers: {
@@ -113,13 +122,13 @@ export async function sendUtmifyOrder(normalizedOrder) {
 
         const respText = await response.text();
         if (!response.ok) {
-            console.error(`[UTMify] Validation Error: ${response.status} - ${respText}`);
+            console.error(`[UTMify] Error: ${response.status} - ${respText}`);
         } else {
             console.log(`[UTMify] Postback successful: ${respText}`);
         }
         return true;
     } catch (err) {
-        console.error('[UTMify] Critical error in postback service:', err.message);
+        console.error('[UTMify] Critical error:', err.message);
         return false;
     }
 }
@@ -133,10 +142,8 @@ export async function sendPostback(orderId) {
              WHERE o.id = $1`,
             [orderId]
         );
-
         if (orderRes.rowCount === 0) return;
         const order = orderRes.rows[0];
-
         const normalizedOrder = {
             orderId: order.id,
             platform: 'NovaPay',
@@ -162,7 +169,6 @@ export async function sendPostback(orderId) {
                 utm_term: order.utm_term || ''
             }
         };
-
         return sendUtmifyOrder(normalizedOrder);
     } catch (err) {
         console.error('[UTMify] sendPostback error:', err.message);
