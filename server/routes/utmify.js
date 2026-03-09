@@ -6,10 +6,15 @@ const router = Router();
 router.get('/settings', async (req, res, next) => {
     try {
         const result = await pool.query(
-            `SELECT secret_key as utmify_api_token, public_key as platform_name 
-             FROM gateway_settings WHERE gateway_name = 'utmify' LIMIT 1`
+            `SELECT secret_key as utmify_api_token, public_key as platform_name, id, updated_at
+             FROM gateway_settings WHERE gateway_name = 'utmify' ORDER BY updated_at DESC`
         );
-        res.json({ data: result.rows[0] || { utmify_api_token: '', platform_name: '' } });
+        console.log(`[UTMify Dev] Found ${result.rowCount} settings rows for utmify.`);
+        res.json({
+            data: result.rows[0] || { utmify_api_token: '', platform_name: '' },
+            count: result.rowCount,
+            rows: result.rows.map(r => ({ id: r.id, updated_at: r.updated_at, token_len: r.utmify_api_token?.length }))
+        });
     } catch (err) { next(err); }
 });
 

@@ -7,10 +7,12 @@ export async function sendUtmifyOrder(normalizedOrder) {
             "SELECT secret_key AS api_token, public_key AS platform_name FROM gateway_settings WHERE gateway_name = 'utmify' LIMIT 1"
         );
         if (credsRes.rowCount === 0 || !credsRes.rows[0].api_token) {
-            console.log('[UTMify] API Token not configured. Skipping postback.');
+            console.log('[UTMify] API Token not configured in DB. Skipping postback.');
             return;
         }
         const { api_token, platform_name } = credsRes.rows[0];
+
+        console.log(`[UTMify] Using token: ${api_token.substring(0, 4)}...${api_token.substring(api_token.length - 4)} (Length: ${api_token.length})`);
 
         const nowIso = new Date().toISOString();
 
