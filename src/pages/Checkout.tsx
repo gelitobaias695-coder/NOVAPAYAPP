@@ -10,114 +10,14 @@ import { Progress } from "@/components/ui/progress";
 import { mockProducts } from "@/lib/mock-data";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import {
-  Shield,
   Lock,
   ArrowLeft,
   Package,
   FileDown,
-  Clock,
-  Users,
   Star,
   CheckCircle,
-  Flame,
-  Eye,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-
-function UrgencyTimer() {
-  const [time, setTime] = useState(15 * 60); // 15 minutes
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTime((t) => (t > 0 ? t - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const minutes = Math.floor(time / 60);
-  const seconds = time % 60;
-  const progress = (time / (15 * 60)) * 100;
-
-  return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3 animate-fade-in">
-      <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 animate-pulse">
-          <Flame className="h-4 w-4 text-destructive" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-destructive">Oferta por tempo limitado!</p>
-          <p className="text-xs text-muted-foreground">Reserva expira em breve</p>
-        </div>
-        <div className="ml-auto flex items-center gap-1 tabular-nums">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive text-destructive-foreground text-sm font-bold">
-            {String(minutes).padStart(2, "0")}
-          </span>
-          <span className="text-destructive font-bold">:</span>
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive text-destructive-foreground text-sm font-bold">
-            {String(seconds).padStart(2, "0")}
-          </span>
-        </div>
-      </div>
-      <Progress value={progress} className="h-1.5" />
-    </div>
-  );
-}
-
-function SocialProof() {
-  const [currentProof, setCurrentProof] = useState(0);
-  const proofs = [
-    { name: "João M.", city: "Joanesburgo", time: "2 min atrás" },
-    { name: "Amina K.", city: "Nairobi", time: "5 min atrás" },
-    { name: "David O.", city: "Lagos", time: "8 min atrás" },
-    { name: "Grace A.", city: "Accra", time: "12 min atrás" },
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentProof((c) => (c + 1) % proofs.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [proofs.length]);
-
-  const proof = proofs[currentProof];
-
-  return (
-    <div
-      key={currentProof}
-      className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 animate-slide-up"
-    >
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-        <CheckCircle className="h-4 w-4 text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium truncate">
-          {proof.name} de {proof.city} comprou
-        </p>
-        <p className="text-[10px] text-muted-foreground">{proof.time}</p>
-      </div>
-    </div>
-  );
-}
-
-function LiveViewers() {
-  const [viewers, setViewers] = useState(23);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setViewers((v) => v + Math.floor(Math.random() * 5) - 2);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <Eye className="h-3.5 w-3.5 text-primary" />
-      <span>
-        <strong className="text-foreground">{Math.max(viewers, 12)}</strong> pessoas visualizando agora
-      </span>
-    </div>
-  );
-}
 
 function Testimonials() {
   const reviews = [
@@ -176,8 +76,8 @@ export default function Checkout() {
             <span className="text-xs font-bold text-primary-foreground">N</span>
           </div>
           <span className="font-semibold">NovaPay</span>
+
           <div className="ml-auto flex items-center gap-3">
-            <LiveViewers />
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Lock className="h-3 w-3" />
               Pagamento seguro
@@ -215,8 +115,7 @@ export default function Checkout() {
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Form */}
           <div className="lg:col-span-3 space-y-5">
-            {/* Timer */}
-            <UrgencyTimer />
+
 
             {/* Step 1: Contact */}
             <div
@@ -383,8 +282,7 @@ export default function Checkout() {
               </Card>
             </div>
 
-            {/* Social proof below form */}
-            <SocialProof />
+
           </div>
 
           {/* Order summary sidebar */}
@@ -452,17 +350,7 @@ export default function Checkout() {
               </CardContent>
             </Card>
 
-            {/* Trust badges */}
-            <div className="flex items-center justify-center gap-3">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Users className="h-3.5 w-3.5" />
-                2,847 compradores
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" />
-                Entrega rápida
-              </div>
-            </div>
+
           </div>
         </div>
       </div>

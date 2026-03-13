@@ -9,7 +9,7 @@ import OrderBumps, { UpsellBanner } from "./OrderBumps";
 import {
     Shield, Lock, CheckCircle, Star, Package,
     ArrowRight, ChevronDown, ShoppingCart, Loader2, Zap,
-    Clock, Users, Truck, CreditCard, AlertCircle
+    Truck, CreditCard, AlertCircle
 } from "lucide-react";
 import { useTranslation, type Language } from "./translations";
 import { AdaptiveImage } from "@/components/ui/adaptive-image";
@@ -31,51 +31,83 @@ const COUNTRIES = [
     { name: "Brazil", code: "+55" }
 ];
 
+const ChevronRight = ({ className }: { className?: string }) => (
+    <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <path d="M1 9L5 5L1 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
 function Breadcrumbs({ step, t }: { step: number; t: any }) {
-    const steps = [
-        { id: 1, label: t.information },
-        { id: 2, label: t.shipping },
-        { id: 3, label: t.payment }
-    ];
+    const s = (id: number) => {
+        if (step === id) return "text-gray-900 font-bold";
+        if (step > id) return "text-blue-600 cursor-pointer hover:text-blue-800 transition-colors";
+        return "text-gray-500";
+    };
 
     return (
-        <nav className="flex items-center justify-center lg:justify-start space-x-2 text-[10px] sm:text-xs text-muted-foreground mb-10 overflow-x-auto no-scrollbar">
-            <span className="flex items-center gap-1.5 whitespace-nowrap group cursor-pointer hover:text-blue-600 transition-colors">
-                <ShoppingCart className="h-3 w-3" />
-                {t.cart}
-            </span>
-            <ChevronRight className="h-3 w-3 text-gray-300 flex-shrink-0" />
-            {steps.map((s, i) => (
-                <div key={s.id} className="flex items-center whitespace-nowrap">
-                    <span className={`transition-all duration-300 ${step === s.id ? "text-blue-600 font-bold scale-105" : step > s.id ? "text-gray-900 font-medium" : "text-gray-400 font-normal"}`}>
-                        {s.label}
-                    </span>
-                    {i < steps.length - 1 && (
-                        <ChevronRight className="h-3 w-3 mx-2 text-gray-300 flex-shrink-0" />
-                    )}
-                </div>
-            ))}
+        <nav className="flex items-center gap-2 text-[11px] sm:text-xs text-gray-400 py-4 mb-4">
+            <span className="text-blue-600 cursor-pointer hover:text-blue-800 transition-colors">Cart</span>
+            <ChevronRight className="h-2 w-2 text-gray-400" />
+            <span className={s(1)}>{t.information}</span>
+            <ChevronRight className="h-2 w-2 text-gray-400" />
+            <span className={s(2)}>{t.shipping}</span>
+            <ChevronRight className="h-2 w-2 text-gray-400" />
+            <span className={s(3)}>{t.payment}</span>
         </nav>
     );
 }
 
-const ChevronRight = ({ className }: { className?: string }) => (
-    <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-        <path d="M1 9L5 5L1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-);
+function ShopifyField({ label, value, onChange, type = "text", ...props }: any) {
+    const [focused, setFocused] = useState(false);
+    const showLabel = focused || value;
+    return (
+        <div className={`relative border border-gray-300 rounded-md transition-all h-[54px] flex flex-col justify-center px-3 ${focused ? 'ring-2 ring-blue-600 border-blue-600' : 'hover:border-gray-400'}`}>
+            <label className={`absolute left-3 transition-all pointer-events-none text-gray-500 ${showLabel ? 'top-1.5 text-[10px] font-medium' : 'top-1/2 -translate-y-1/2 text-sm'}`}>
+                {label}
+            </label>
+            <input 
+                {...props}
+                type={type}
+                value={value}
+                onChange={onChange}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                className={`w-full bg-transparent border-none p-0 outline-none text-sm text-gray-900 placeholder-transparent ${showLabel ? 'mt-3.5' : ''}`}
+                placeholder={label}
+            />
+        </div>
+    );
+}
+
+function ShopifySelect({ label, value, children, onChange }: any) {
+    return (
+        <div className="relative border border-gray-300 rounded-md h-[54px] flex flex-col justify-center px-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-blue-600 transition-all">
+            <label className="absolute left-3 top-1.5 text-[10px] font-medium text-gray-500 uppercase tracking-tight">
+                {label}
+            </label>
+            <div className="relative mt-3.5">
+                <select 
+                    value={value}
+                    onChange={onChange}
+                    className="w-full bg-transparent border-none p-0 outline-none text-sm text-gray-900 appearance-none cursor-pointer"
+                >
+                    {children}
+                </select>
+                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
+        </div>
+    );
+}
 
 function SummaryRow({ label, value, onAction, actionLabel }: { label: string; value: string; onAction?: () => void; actionLabel?: string }) {
     return (
-        <div className="flex justify-between items-start text-sm py-3 first:pt-0 last:pb-0 border-b last:border-0 border-gray-100">
-            <div className="grid grid-cols-[80px_1fr] gap-4 w-full">
-                <span className="text-gray-500">{label}</span>
-                <span className="text-gray-900 break-words">{value}</span>
-            </div>
+        <div className="grid grid-cols-[80px_1fr_auto] gap-4 py-3.5 first:pt-0 last:pb-0 border-b last:border-0 border-gray-100 items-center">
+            <span className="text-sm text-gray-500">{label}</span>
+            <span className="text-sm text-gray-900 break-words">{value}</span>
             {onAction && (
                 <button 
                     onClick={onAction}
-                    className="text-xs text-blue-600 font-medium hover:underline ml-4"
+                    className="text-[11px] text-blue-600 font-medium hover:underline"
                 >
                     {actionLabel}
                 </button>
@@ -104,7 +136,7 @@ export default function CheckoutPhysical({ product }: Props) {
     const [isSummaryOpen, setIsSummaryOpen] = useState(false);
     const [form, setForm] = useState({
         email: "", phone: "", phoneCode: "+27", firstName: "", lastName: "",
-        address: "", city: "", postal: "", country: "South Africa",
+        address: "", address2: "", city: "", province: "Gauteng", postal: "", country: "South Africa",
     });
     const [card, setCard] = useState({ number: "", exp: "", cvv: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,8 +146,6 @@ export default function CheckoutPhysical({ product }: Props) {
     const [showUpsell, setShowUpsell] = useState(false);
     const [analyticsData, setAnalyticsData] = useState<Record<string, string | undefined>>({});
     const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
-    const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
-    const [viewers, setViewers] = useState(Math.floor(Math.random() * 20) + 15);
     const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('express');
     const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
     const shippingPrice = shippingMethod === 'standard' ? 67 : 0;
@@ -136,19 +166,7 @@ export default function CheckoutPhysical({ product }: Props) {
         localStorage.setItem(`checkout_form_${product.id}`, JSON.stringify(form));
     }, [form, product.id]);
 
-    // Countdown
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setTimeLeft(t => t > 0 ? t - 1 : 0);
-        }, 1000);
-        return () => clearInterval(interval);
-    }, []);
 
-    const formatTime = (seconds: number) => {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}:${s < 10 ? '0' : ''}${s}`;
-    };
 
     // CEP Lookup
     const handleCEPLookup = async (cep: string) => {
@@ -370,20 +388,35 @@ export default function CheckoutPhysical({ product }: Props) {
 
     return (
         <div className="checkout-shopify-mode min-h-screen bg-white text-zinc-900 font-sans">
-            <div className="max-w-[1100px] mx-auto min-h-screen flex flex-col lg:flex-row shadow-2xl lg:shadow-none">
+             {/* Header with Logo - Centered on Mobile */}
+             <header className="border-b border-gray-100 py-6 lg:hidden">
+                <div className="flex justify-center">
+                    {product.logo_url ? (
+                        <img src={product.logo_url} alt="Logo" className="h-8 object-contain" />
+                    ) : (
+                        <div className="flex items-center gap-1">
+                            <span className="font-black text-2xl tracking-tighter text-blue-600 italic">takealot</span>
+                            <div className="bg-blue-600 rounded-full p-1">
+                                <ShoppingCart className="h-3 w-3 text-white fill-white" />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </header>
+
+            <div className="max-w-[1100px] mx-auto min-h-screen flex flex-col lg:flex-row">
                 
                 {/* Mobile Order Summary Accordion */}
-                <div className="lg:hidden bg-[#f5f5f5] border-b border-gray-200 sticky top-0 z-50">
+                <div className="lg:hidden bg-[#fafafa] border-b border-gray-200 sticky top-0 z-50">
                     <button
                         onClick={() => setIsSummaryOpen(!isSummaryOpen)}
-                        className="w-full flex items-center justify-between p-4 transition-all duration-300 hover:bg-gray-100 active:bg-gray-200"
+                        className="w-full flex items-center justify-between p-4 px-6 md:px-10"
                     >
-                        <div className="flex items-center gap-2 text-sm text-blue-600 font-semibold">
-                            <ShoppingCart className="h-4 w-4" />
-                            <span className="tracking-tight">{isSummaryOpen ? 'Hide order summary' : 'Show order summary'}</span>
-                            <ChevronDown className={`h-4 w-4 transition-transform duration-500 ${isSummaryOpen ? 'rotate-180' : ''}`} />
+                        <div className="flex items-center gap-2 text-[14px] text-blue-600 font-medium">
+                            <span>Order summary</span>
+                            <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isSummaryOpen ? 'rotate-180' : ''}`} />
                         </div>
-                        <span className="font-bold text-lg text-gray-900 tabular-nums">{format(totalPrice)}</span>
+                        <span className="font-bold text-xl text-gray-900">{format(totalPrice)}</span>
                     </button>
                     <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isSummaryOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
                         <div className="p-4 space-y-4 bg-white border-t border-gray-200">
@@ -440,45 +473,46 @@ export default function CheckoutPhysical({ product }: Props) {
                 </div>
 
                 {/* Left Side: Form & Info */}
-                <div className="flex-1 bg-white p-6 sm:p-10 lg:p-12 lg:pr-8 xl:pr-16 order-1 lg:order-1">
+                <div className="flex-1 bg-white p-6 sm:p-10 lg:p-12 lg:pr-8 xl:pr-16 order-1 lg:order-1 lg:border-r lg:border-gray-100">
                     <div className="max-w-[580px] lg:ml-auto">
-                        <header className="mb-8 text-center lg:text-left flex flex-col items-center lg:items-start group">
-                            {product.logo_url ? (
-                                <img src={product.logo_url} alt="Logo" className="h-10 mb-6 object-contain transition-transform duration-500 group-hover:scale-105" />
+                        <header className="hidden lg:block mb-8">
+                             {product.logo_url ? (
+                                <img src={product.logo_url} alt="Logo" className="h-9 mb-6 object-contain" />
                             ) : (
-                                <div className="flex items-center gap-1.5 mb-6 hover:opacity-80 transition-opacity cursor-pointer">
-                                    <span className="font-black text-2xl tracking-tighter text-blue-600">takealot</span>
-                                    <div className="bg-blue-600 rounded-full p-1 shadow-lg shadow-blue-600/20">
+                                <div className="flex items-center gap-1.5 mb-6">
+                                    <span className="font-black text-2xl tracking-tighter text-blue-600 italic">takealot</span>
+                                    <div className="bg-blue-600 rounded-full p-1">
                                         <ShoppingCart className="h-3 w-3 text-white fill-white" />
                                     </div>
                                 </div>
                             )}
-                            <Breadcrumbs step={step} t={t} />
-
                         </header>
+                        <Breadcrumbs step={step} t={t} />
+                    </div>
 
+                    <div className="max-w-[580px] lg:ml-auto">
                         <main className="space-y-8">
                             {/* Information Summary (Shown in Step 2 and 3) */}
                             {step > 1 && (
-                                <div className="border border-gray-200 rounded-lg p-4 space-y-0 shadow-sm transition-all duration-300">
+                                <div className="border border-gray-200 rounded-lg p-5 space-y-0 bg-white transition-all duration-300">
                                     <SummaryRow 
                                         label="Contact" 
                                         value={form.email || form.phone} 
                                         onAction={() => setStep(1)} 
-                                        actionLabel={t.change} 
+                                        actionLabel="Change" 
                                     />
                                     <SummaryRow 
                                         label="Ship to" 
-                                        value={`${form.address}, ${form.city}, ${form.country}`} 
+                                        value={`${form.address}, ${form.city}, ${form.postal}, ${form.country}`} 
                                         onAction={() => setStep(1)} 
-                                        actionLabel={t.change} 
+                                        actionLabel="Change" 
                                     />
                                     {step > 2 && (
                                         <SummaryRow 
                                             label="Method" 
                                             value={`${shippingMethod === 'express' ? t.expressShipping : t.standardShipping} · ${shippingPrice === 0 ? t.free : format(shippingPrice)}`} 
                                             onAction={() => setStep(2)} 
-                                            actionLabel={t.change} 
+                                            actionLabel="Change" 
                                         />
                                     )}
                                 </div>
@@ -489,81 +523,75 @@ export default function CheckoutPhysical({ product }: Props) {
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <h2 className="text-lg font-semibold text-gray-900">Contact</h2>
-                                            <button className="text-xs text-blue-600 hover:underline">Sign in</button>
+                                            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Contact</h2>
+                                            <button className="text-xs text-blue-600 font-medium hover:underline">Sign in</button>
                                         </div>
-                                        <div className="group">
-                                            <Input 
-                                                placeholder="Email or mobile phone number" 
-                                                className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all placeholder:text-gray-400 shadow-none hover:border-gray-400"
-                                                value={form.email}
-                                                onChange={set("email")}
-                                            />
-                                        </div>
+                                        <ShopifyField 
+                                            label="Email or mobile phone number" 
+                                            value={form.email}
+                                            onChange={set("email")}
+                                        />
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h2 className="text-lg font-semibold text-gray-900">Shipping address</h2>
-                                        <div className="grid grid-cols-1 gap-3">
-                                            <div className="space-y-1">
-                                                <div className="relative">
-                                                     <select 
-                                                        value={form.country} 
-                                                        onChange={set("country")}
-                                                        className="flex h-12 w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-3 pt-3 pb-0 text-sm appearance-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none cursor-pointer peer"
-                                                    >
-                                                        {COUNTRIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                                                    </select>
-                                                    <span className="absolute left-3 top-1 text-[10px] text-gray-500 font-medium">Country/Region</span>
-                                                    <ChevronDown className="absolute right-3 top-4 h-4 w-4 text-gray-400 pointer-events-none" />
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <Input 
-                                                    placeholder="First name (optional)" 
-                                                    className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
+                                        <h2 className="text-xl font-bold text-gray-900 tracking-tight">Shipping address</h2>
+                                        <div className="grid grid-cols-1 gap-3.5">
+                                            <ShopifySelect 
+                                                label="Country/Region"
+                                                value={form.country} 
+                                                onChange={set("country")}
+                                            >
+                                                {COUNTRIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                                            </ShopifySelect>
+                                            
+                                            <div className="grid grid-cols-2 gap-3.5">
+                                                <ShopifyField 
+                                                    label="First name (optional)" 
                                                     value={form.firstName}
                                                     onChange={set("firstName")}
                                                 />
-                                                <Input 
-                                                    placeholder="Last name" 
-                                                    className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
+                                                <ShopifyField 
+                                                    label="Last name" 
                                                     value={form.lastName}
                                                     onChange={set("lastName")}
                                                 />
                                             </div>
-                                            <Input 
-                                                placeholder="Address" 
-                                                className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
+                                            <ShopifyField 
+                                                label="Address" 
                                                 value={form.address}
                                                 onChange={set("address")}
                                             />
-                                            <Input 
-                                                placeholder="Apartment, suite, etc. (optional)" 
-                                                className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
+                                            <ShopifyField 
+                                                label="Apartment, suite, etc. (optional)" 
+                                                value={form.address2}
+                                                onChange={set("address2")}
                                             />
-                                            <div className="grid grid-cols-3 gap-3">
-                                                <Input 
-                                                    placeholder="City" 
-                                                    className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                                <ShopifyField 
+                                                    label="City" 
                                                     value={form.city}
                                                     onChange={set("city")}
                                                 />
-                                                <div className="relative overflow-hidden">
-                                                    <select className="h-12 w-full border border-gray-300 rounded-md bg-white text-gray-900 px-3 text-sm appearance-none focus:ring-1 focus:ring-blue-600 outline-none hover:border-gray-400 transition-colors">
-                                                        <option>Province</option>
-                                                        <option>Gauteng</option>
-                                                        <option>Western Cape</option>
-                                                        <option>KwaZulu-Natal</option>
-                                                    </select>
-                                                    <ChevronDown className="absolute right-3 top-4 h-4 w-4 text-gray-400 pointer-events-none" />
-                                                </div>
-                                                <Input 
-                                                    placeholder="Postal code" 
-                                                    className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
+                                                <ShopifySelect 
+                                                    label="Province"
+                                                    value={form.province}
+                                                    onChange={set("province")}
+                                                >
+                                                    <option value="Gauteng">Gauteng</option>
+                                                    <option value="Western Cape">Western Cape</option>
+                                                    <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                                    <option value="Eastern Cape">Eastern Cape</option>
+                                                    <option value="Free State">Free State</option>
+                                                    <option value="Limpopo">Limpopo</option>
+                                                    <option value="Mpumalanga">Mpumalanga</option>
+                                                    <option value="Northern Cape">Northern Cape</option>
+                                                    <option value="North West">North West</option>
+                                                </ShopifySelect>
+                                                <ShopifyField 
+                                                    label="Postal code" 
                                                     value={form.postal}
                                                     onChange={set("postal")}
-                                                    onBlur={(e) => handleCEPLookup(e.target.value)}
+                                                    onBlur={(e: any) => handleCEPLookup(e.target.value)}
                                                 />
                                             </div>
                                             <div className="flex items-center gap-2 mt-2">
@@ -580,15 +608,13 @@ export default function CheckoutPhysical({ product }: Props) {
                                     </div>
 
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-                                        <button className="text-sm text-blue-600 flex items-center gap-1.5 order-2 sm:order-1 transition-colors hover:text-blue-800">
-                                            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="rotate-180">
-                                                <path d="M1 9L5 5L1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                            </svg>
+                                        <button className="text-sm font-medium text-blue-600 flex items-center gap-1.5 order-2 sm:order-1 transition-colors hover:text-blue-800">
+                                            <ChevronRight className="h-2.5 w-2.5 rotate-180" />
                                             Return to cart
                                         </button>
                                         <Button 
                                             onClick={() => setStep(2)}
-                                            className="w-full sm:w-auto h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-600/10 order-1 sm:order-2 transition-all transform hover:scale-[1.02]"
+                                            className="w-full sm:w-auto h-16 px-10 bg-[#0058e4] hover:bg-blue-700 text-white font-bold rounded-lg shadow-xl shadow-blue-600/10 order-1 sm:order-2 transition-all transform active:scale-95"
                                         >
                                             Continue to shipping
                                         </Button>
@@ -600,45 +626,43 @@ export default function CheckoutPhysical({ product }: Props) {
                             {step === 2 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-4">
-                                        <h2 className="text-lg font-semibold text-gray-900">Shipping method</h2>
-                                        <div className="border border-gray-200 rounded-lg divide-y overflow-hidden shadow-sm">
+                                        <h2 className="text-xl font-bold text-gray-900 tracking-tight">Shipping method</h2>
+                                        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
                                             <label 
-                                                className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${shippingMethod === 'express' ? 'bg-blue-50/50' : 'hover:bg-gray-50'}`}
+                                                className={`flex items-center justify-between p-5 cursor-pointer transition-all border-2 ${shippingMethod === 'express' ? 'border-blue-600 bg-blue-50/20' : 'border-transparent hover:bg-gray-50'}`}
                                                 onClick={() => setShippingMethod('express')}
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${shippingMethod === 'express' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+                                                <div className="flex items-center gap-3.5">
+                                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${shippingMethod === 'express' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
                                                         {shippingMethod === 'express' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                                     </div>
-                                                    <span className="text-sm font-medium text-gray-900">{t.expressShipping}</span>
+                                                    <span className="text-[15px] font-medium text-gray-900">{t.expressShipping}</span>
                                                 </div>
-                                                <span className="text-sm font-bold text-gray-900 uppercase">{t.free}</span>
+                                                <span className="text-sm font-bold text-gray-900 uppercase">FREE</span>
                                             </label>
                                             <label 
-                                                className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${shippingMethod === 'standard' ? 'bg-blue-50/50' : 'hover:bg-gray-50'}`}
+                                                className={`flex items-center justify-between p-5 cursor-pointer transition-all border-2 border-t border-t-gray-100 ${shippingMethod === 'standard' ? 'border-blue-600 bg-blue-50/20' : 'border-transparent hover:bg-gray-50'}`}
                                                 onClick={() => setShippingMethod('standard')}
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${shippingMethod === 'standard' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+                                                <div className="flex items-center gap-3.5">
+                                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${shippingMethod === 'standard' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
                                                         {shippingMethod === 'standard' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                                     </div>
-                                                    <span className="text-sm font-medium text-gray-900">{t.standardShipping}</span>
+                                                    <span className="text-[15px] font-medium text-gray-900">{t.standardShipping}</span>
                                                 </div>
-                                                <span className="text-sm font-bold text-gray-900">{format(67)}</span>
+                                                <span className="text-[15px] font-bold text-gray-900">R 67,00</span>
                                             </label>
                                         </div>
                                     </div>
 
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-                                        <button className="text-sm text-blue-600 flex items-center gap-1.5 order-2 sm:order-1 transition-colors hover:text-blue-800" onClick={() => setStep(1)}>
-                                            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="rotate-180">
-                                                <path d="M1 9L5 5L1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                            </svg>
+                                        <button className="text-sm font-medium text-blue-600 flex items-center gap-1.5 order-2 sm:order-1 transition-colors hover:text-blue-800" onClick={() => setStep(1)}>
+                                            <ChevronRight className="h-2.5 w-2.5 rotate-180" />
                                             Return to information
                                         </button>
                                         <Button 
                                             onClick={() => setStep(3)}
-                                            className="w-full sm:w-auto h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-600/10 order-1 sm:order-2 transition-all transform hover:scale-[1.02]"
+                                            className="w-full sm:w-auto h-16 px-10 bg-[#0058e4] hover:bg-blue-700 text-white font-bold rounded-lg shadow-xl shadow-blue-600/10 order-1 sm:order-2 transition-all transform active:scale-95"
                                         >
                                             Continue to payment
                                         </Button>
@@ -661,9 +685,8 @@ export default function CheckoutPhysical({ product }: Props) {
                                                     <span className="text-sm font-medium text-gray-900">Paystack</span>
                                                 </div>
                                                 <div className="flex items-center gap-1.5">
-                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Mastercard-logo.svg" alt="Mastercard" className="h-4" />
-                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4" />
-                                                    <div className="bg-gray-100 px-1 rounded text-[8px] font-bold text-gray-500">+5</div>
+                                                    <CreditCard className="h-4 w-4 text-gray-400" />
+                                                    <span className="text-[10px] font-medium text-gray-400">Secure Payment</span>
                                                 </div>
                                             </div>
                                             <div className="p-12 flex flex-col items-center justify-center text-center space-y-4">
