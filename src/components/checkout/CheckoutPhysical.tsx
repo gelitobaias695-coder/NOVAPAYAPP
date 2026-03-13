@@ -740,28 +740,7 @@ export default function CheckoutPhysical({ product }: Props) {
                                 </div>
                             )}
 
-                            <div className="pt-10 space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
-                                        <div className="bg-blue-100 p-2 rounded-lg">
-                                            <Shield className="h-5 w-5 text-blue-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-900">100% Secure</p>
-                                            <p className="text-[10px] text-gray-500">Encrypted checkout</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100 shadow-sm transition-all hover:shadow-md">
-                                        <div className="bg-green-100 p-2 rounded-lg">
-                                            <Package className="h-5 w-5 text-green-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-900">Insured Shipping</p>
-                                            <p className="text-[10px] text-gray-500">Tracked delivery</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
 
                             <footer className="pt-12 border-t border-gray-100 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
                                 <nav className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-[10px] text-gray-400 font-medium">
