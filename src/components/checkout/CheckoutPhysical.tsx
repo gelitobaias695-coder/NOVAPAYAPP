@@ -629,39 +629,33 @@ export default function CheckoutPhysical({ product }: Props) {
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-4">
                                         <h2 className="text-xl font-bold text-gray-900 tracking-tight">Shipping method</h2>
-                                        <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                                        <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex flex-col">
                                             <div 
-                                                className={`flex items-center justify-between p-5 cursor-pointer transition-all relative ${shippingMethod === 'express' ? 'bg-blue-50/40 z-10' : 'hover:bg-gray-50'}`}
+                                                className={`flex items-center justify-between p-6 cursor-pointer transition-all relative ${shippingMethod === 'express' ? 'bg-blue-50/30 z-10' : 'hover:bg-gray-50'}`}
                                                 onClick={() => setShippingMethod('express')}
                                             >
-                                                {shippingMethod === 'express' && <div className="absolute inset-0 ring-2 ring-inset ring-blue-600 pointer-events-none" />}
+                                                {shippingMethod === 'express' && <div className="absolute inset-0 border-2 border-blue-600 rounded-t-xl pointer-events-none" />}
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${shippingMethod === 'express' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
-                                                        {shippingMethod === 'express' && <div className="w-2 h-2 rounded-full bg-white shadow-inner" />}
+                                                        {shippingMethod === 'express' && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-sm" />}
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[15px] font-semibold text-gray-900">Express Shipping</span>
-                                                        <span className="text-[11px] text-gray-500 font-medium">1-3 business days</span>
-                                                    </div>
+                                                    <span className="text-[15px] font-bold text-gray-900">Express Shipping</span>
                                                 </div>
                                                 <span className="text-sm font-bold text-gray-900">
                                                     {parseFloat(product.express_shipping_price) > 0 ? format(parseFloat(product.express_shipping_price)) : 'FREE'}
                                                 </span>
                                             </div>
-                                            <div className="h-[1px] bg-gray-100" />
+                                            <div className="h-[1px] bg-gray-100 flex-none" />
                                             <div 
-                                                className={`flex items-center justify-between p-5 cursor-pointer transition-all relative ${shippingMethod === 'standard' ? 'bg-blue-50/40 z-10' : 'hover:bg-gray-50'}`}
+                                                className={`flex items-center justify-between p-6 cursor-pointer transition-all relative ${shippingMethod === 'standard' ? 'bg-blue-50/30 z-10' : 'hover:bg-gray-50'}`}
                                                 onClick={() => setShippingMethod('standard')}
                                             >
-                                                {shippingMethod === 'standard' && <div className="absolute inset-0 ring-2 ring-inset ring-blue-600 pointer-events-none" />}
+                                                {shippingMethod === 'standard' && <div className="absolute inset-0 border-2 border-blue-600 rounded-b-xl pointer-events-none" />}
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${shippingMethod === 'standard' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
-                                                        {shippingMethod === 'standard' && <div className="w-2 h-2 rounded-full bg-white shadow-inner" />}
+                                                        {shippingMethod === 'standard' && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-sm" />}
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[15px] font-semibold text-gray-900">Standard Shipping</span>
-                                                        <span className="text-[11px] text-gray-500 font-medium">3-7 business days</span>
-                                                    </div>
+                                                    <span className="text-[15px] font-bold text-gray-900">Standard Shipping</span>
                                                 </div>
                                                 <span className="text-[15px] font-bold text-gray-900">
                                                     {parseFloat(product.standard_shipping_price) > 0 ? format(parseFloat(product.standard_shipping_price)) : 'FREE'}
