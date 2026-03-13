@@ -112,13 +112,15 @@ if (pool) {
   `).then(() => console.log('[DB] Bump logs table ensured'))
     .catch(e => console.error('[DB] Error auto-migrating bump logs table:', e.message));
 
-  // Mode separation (is_live)
+  // Mode separation and missing columns
   pool.query(`
     ALTER TABLE products ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT true;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS express_shipping_price DECIMAL(12,2) DEFAULT 0.00;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS standard_shipping_price DECIMAL(12,2) DEFAULT 0.00;
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT true;
     ALTER TABLE funnels ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT true;
-  `).then(() => console.log('[DB] Mode separation columns (is_live) ensured'))
-    .catch(e => console.error('[DB] Error auto-migrating is_live columns:', e.message));
+  `).then(() => console.log('[DB] Base columns ensured'))
+    .catch(e => console.error('[DB] Error auto-migrating base columns:', e.message));
 }
 
 app.get('/api/db-test', async (req, res) => {
