@@ -20,6 +20,7 @@ export interface DBProduct {
     email_sender_email: string | null;
     express_shipping_price: string;
     standard_shipping_price: string;
+    payment_gateway: string;
     created_at: string;
     updated_at: string;
 }
@@ -42,6 +43,7 @@ export interface CreateProductInput {
     email_sender_email?: string;
     express_shipping_price?: number;
     standard_shipping_price?: number;
+    payment_gateway?: string;
 }
 
 // ... useProducts (keeping it same for now to avoid breaking admin)
@@ -88,6 +90,7 @@ export function useProducts(): UseProductsReturn {
         if (input.email_sender_email) formData.append('email_sender_email', input.email_sender_email);
         if (input.express_shipping_price !== undefined) formData.append('express_shipping_price', input.express_shipping_price.toString());
         if (input.standard_shipping_price !== undefined) formData.append('standard_shipping_price', input.standard_shipping_price.toString());
+        if (input.payment_gateway) formData.append('payment_gateway', input.payment_gateway);
 
         const res = await fetch('/api/products', {
             method: 'POST',
@@ -121,6 +124,7 @@ export function useProducts(): UseProductsReturn {
         if (input.email_sender_email) formData.append('email_sender_email', input.email_sender_email);
         formData.append('express_shipping_price', (input.express_shipping_price ?? 0).toString());
         formData.append('standard_shipping_price', (input.standard_shipping_price ?? 0).toString());
+        if (input.payment_gateway) formData.append('payment_gateway', input.payment_gateway);
 
         const res = await fetch(`/api/products/${id}`, {
             method: 'PUT',

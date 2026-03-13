@@ -5,7 +5,7 @@ const COLUMNS = `
   id, name, description, price, currency, status,
   type, logo_url, product_image_url, primary_color, require_whatsapp,
   checkout_language, is_bump, success_url, email_sender_name, email_sender_email, is_live,
-  express_shipping_price, standard_shipping_price, created_at, updated_at
+  express_shipping_price, standard_shipping_price, payment_gateway, created_at, updated_at
 `;
 
 /**
@@ -41,13 +41,13 @@ export async function create(data) {
         name, description, price, currency, status,
         type, logo_url, product_image_url, primary_color, require_whatsapp,
         checkout_language, success_url, email_sender_name, email_sender_email,
-        is_live, express_shipping_price, standard_shipping_price
+        is_live, express_shipping_price, standard_shipping_price, payment_gateway
     } = data;
 
     const result = await pool.query(
         `INSERT INTO products
-       (name, description, price, currency, status, type, logo_url, product_image_url, primary_color, require_whatsapp, checkout_language, success_url, email_sender_name, email_sender_email, is_live, express_shipping_price, standard_shipping_price)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+       (name, description, price, currency, status, type, logo_url, product_image_url, primary_color, require_whatsapp, checkout_language, success_url, email_sender_name, email_sender_email, is_live, express_shipping_price, standard_shipping_price, payment_gateway)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
      RETURNING ${COLUMNS}`,
         [
             name,
@@ -66,7 +66,8 @@ export async function create(data) {
             email_sender_email ?? null,
             is_live ?? true,
             express_shipping_price ?? 0.00,
-            standard_shipping_price ?? 0.00
+            standard_shipping_price ?? 0.00,
+            payment_gateway ?? 'paystack'
         ]
     );
     return result.rows[0];
@@ -82,7 +83,7 @@ export async function update(id, data) {
         name, description, price, currency, status,
         type, logo_url, product_image_url, primary_color, require_whatsapp,
         checkout_language, success_url, email_sender_name, email_sender_email,
-        express_shipping_price, standard_shipping_price
+        express_shipping_price, standard_shipping_price, payment_gateway
     } = data;
 
     // Build dynamic update query to handle optional image fields
@@ -102,12 +103,13 @@ export async function update(id, data) {
         email_sender_email = $12,
         express_shipping_price = $13,
         standard_shipping_price = $14,
+        payment_gateway = $15,
         updated_at = NOW()
     `;
     const params = [
         name, description ?? null, price, currency, status,
         type ?? 'physical', primary_color ?? '#10B981', require_whatsapp ?? false, checkout_language ?? 'pt', success_url ?? null, email_sender_name ?? null, email_sender_email ?? null,
-        express_shipping_price ?? 0.00, standard_shipping_price ?? 0.00
+        express_shipping_price ?? 0.00, standard_shipping_price ?? 0.00, payment_gateway ?? 'paystack'
     ];
     let paramCount = params.length;
 

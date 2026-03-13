@@ -700,27 +700,43 @@ export default function CheckoutPhysical({ product, initFunnel, initBumps, initR
                                         
                                         <div className="border border-[#1773B0] rounded-xl overflow-hidden shadow-sm flex flex-col">
                                             <div className="bg-white p-4 border-b border-[#1773B0] flex items-center justify-between">
-                                                <span className="text-[15px] font-medium text-gray-900">Paystack</span>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm">
-                                                        <svg className="w-[22px]" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <circle cx="8" cy="8" r="6" fill="#EB001B"/>
-                                                            <circle cx="16" cy="8" r="6" fill="#F79E1B"/>
-                                                            <path d="M12 4.47055C10.999 5.30232 10.3529 6.57398 10.3529 8C10.3529 9.42602 10.999 10.6977 12 11.5294C13.001 10.6977 13.6471 9.42602 13.6471 8C13.6471 6.57398 13.001 5.30232 12 4.47055Z" fill="#FF5F00"/>
-                                                        </svg>
-                                                    </span>
-                                                    <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm font-bold text-[#1434CB] bg-white">
-                                                        VISA
-                                                    </span>
-                                                    <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm bg-[#ffcc00]">
-                                                        <span className="text-[#000] font-bold text-[8px]">MTN</span>
-                                                    </span>
-                                                    <span className="flex items-center justify-center w-[28px] h-[24px] border border-gray-200 rounded text-xs font-medium text-gray-600 bg-white shadow-sm">+5</span>
-                                                </div>
+                                                <span className="text-[15px] font-medium text-gray-900">
+                                                    {product.payment_gateway === 'e2payments' ? 'E2payments' : 'Paystack'}
+                                                </span>
+                                                {product.payment_gateway === 'e2payments' ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm font-bold text-[#1434CB] bg-white">
+                                                            VISA
+                                                        </span>
+                                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm bg-[#41b549] text-white font-bold text-[7px] tracking-tighter">
+                                                            M-PESA
+                                                        </span>
+                                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm font-bold bg-[#ffcc00] text-[#000] text-[8px]">
+                                                            MPESA
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm">
+                                                            <svg className="w-[22px]" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <circle cx="8" cy="8" r="6" fill="#EB001B"/>
+                                                                <circle cx="16" cy="8" r="6" fill="#F79E1B"/>
+                                                                <path d="M12 4.47055C10.999 5.30232 10.3529 6.57398 10.3529 8C10.3529 9.42602 10.999 10.6977 12 11.5294C13.001 10.6977 13.6471 9.42602 13.6471 8C13.6471 6.57398 13.001 5.30232 12 4.47055Z" fill="#FF5F00"/>
+                                                            </svg>
+                                                        </span>
+                                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm font-bold text-[#1434CB] bg-white">
+                                                            VISA
+                                                        </span>
+                                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm bg-[#ffcc00]">
+                                                            <span className="text-[#000] font-bold text-[8px]">MTN</span>
+                                                        </span>
+                                                        <span className="flex items-center justify-center w-[28px] h-[24px] border border-gray-200 rounded text-xs font-medium text-gray-600 bg-white shadow-sm">+5</span>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="bg-[#f5f5f5] p-8 flex items-center justify-center text-center">
                                                 <p className="text-[15px] text-gray-900 font-medium">
-                                                    You'll be redirected to Paystack to complete your<br />purchase.
+                                                    You'll be redirected to {product.payment_gateway === 'e2payments' ? 'E2payments' : 'Paystack'} to complete your<br />purchase.
                                                 </p>
                                             </div>
                                         </div>

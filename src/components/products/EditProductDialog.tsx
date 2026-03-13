@@ -26,7 +26,7 @@ const productSchema = z.object({
     name: z.string().min(1, "Nome é obrigatório").max(255),
     description: z.string().max(2000).optional(),
     price: z.coerce.number().positive("Preço deve ser maior que zero"),
-    currency: z.enum(["ZAR", "KES", "TZS", "NGN", "GHS"]),
+    currency: z.enum(["ZAR", "KES", "TZS", "NGN", "GHS", "MZN"]),
     status: z.enum(["active", "inactive"]),
     type: z.enum(["physical", "digital"]),
     primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#10B981"),
@@ -37,6 +37,7 @@ const productSchema = z.object({
     email_sender_email: z.string().email("E-mail inválido").optional().or(z.literal('')),
     express_shipping_price: z.coerce.number().min(0).optional().default(0),
     standard_shipping_price: z.coerce.number().min(0).optional().default(0),
+    payment_gateway: z.enum(["paystack", "e2payments"]).default("paystack"),
 });
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -185,6 +186,7 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
             checkout_language: "pt", success_url: "",
             email_sender_name: "", email_sender_email: "",
             express_shipping_price: 0, standard_shipping_price: 0,
+            payment_gateway: "paystack",
         },
     });
 
@@ -206,6 +208,7 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                 email_sender_email: product.email_sender_email || "",
                 express_shipping_price: parseFloat(product.express_shipping_price) || 0,
                 standard_shipping_price: parseFloat(product.standard_shipping_price) || 0,
+                payment_gateway: (product.payment_gateway as ProductFormValues["payment_gateway"]) || "paystack",
             });
             setIsRedirectEnabled(!!product.success_url);
         }
@@ -318,6 +321,7 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                 email_sender_email: values.email_sender_email || undefined,
                 express_shipping_price: values.express_shipping_price,
                 standard_shipping_price: values.standard_shipping_price,
+                payment_gateway: values.payment_gateway,
             });
 
             // 2. Sync Order Bumps atomically via PUT /api/products/:id/bumps/sync
@@ -380,6 +384,7 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
     const primaryColor = watch("primary_color");
     const requireWhatsapp = watch("require_whatsapp");
     const checkoutLanguage = watch("checkout_language");
+    const paymentGateway = watch("payment_gateway");
 
     const checkoutUrl = savedProduct
         ? `${window.location.origin}/checkout/${savedProduct.id}`
@@ -485,6 +490,7 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="ZAR">🇿🇦 ZAR</SelectItem>
+                                        <SelectItem value="MZN">🇲🇿 MZN</SelectItem>
                                         <SelectItem value="NGN">🇳🇬 NGN</SelectItem>
                                         <SelectItem value="KES">🇰🇪 KES</SelectItem>
                                         <SelectItem value="GHS">🇬🇭 GHS</SelectItem>
@@ -502,6 +508,18 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                                 <SelectContent>
                                     <SelectItem value="active">✅ Ativo</SelectItem>
                                     <SelectItem value="inactive">⏸ Inativo</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Payment Gateway */}
+                        <div className="space-y-1">
+                            <Label>Gateway de Pagamento *</Label>
+                            <Select value={paymentGateway} onValueChange={(v) => setValue("payment_gateway", v as ProductFormValues["payment_gateway"])}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="paystack">💳 Paystack (South Africa/NG/GHS/KES)</SelectItem>
+                                    <SelectItem value="e2payments">💳 E2payments (Mozambique)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

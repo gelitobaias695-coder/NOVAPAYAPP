@@ -9,8 +9,8 @@ export const CreateProductSchema = z.object({
         .number({ invalid_type_error: 'Price must be a number' })
         .positive('Price must be greater than 0')
         .multipleOf(0.01),
-    currency: z.enum(['ZAR', 'KES', 'TZS', 'NGN', 'GHS'], {
-        errorMap: () => ({ message: 'Currency must be ZAR, KES, TZS, NGN or GHS' }),
+    currency: z.enum(['ZAR', 'KES', 'TZS', 'NGN', 'GHS', 'MZN'], {
+        errorMap: () => ({ message: 'Currency must be ZAR, KES, TZS, NGN, GHS or MZN' }),
     }),
     status: z.enum(['active', 'inactive']).default('active'),
     type: z.enum(['physical', 'digital']).default('physical'),
@@ -28,6 +28,7 @@ export const CreateProductSchema = z.object({
     is_live: z.boolean().optional(),
     express_shipping_price: z.number().nonnegative().optional().default(0),
     standard_shipping_price: z.number().nonnegative().optional().default(0),
+    payment_gateway: z.enum(['paystack', 'e2payments']).default('paystack'),
 });
 
 export async function listProducts() {
