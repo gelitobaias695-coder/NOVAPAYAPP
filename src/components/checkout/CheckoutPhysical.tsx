@@ -440,7 +440,7 @@ export default function CheckoutPhysical({ product }: Props) {
                 </div>
 
                 {/* Left Side: Form & Info */}
-                <div className="flex-1 bg-white p-6 sm:p-10 lg:p-12 lg:pr-8 xl:pr-16 order-2 lg:order-1">
+                <div className="flex-1 bg-white p-6 sm:p-10 lg:p-12 lg:pr-8 xl:pr-16 order-1 lg:order-1">
                     <div className="max-w-[580px] lg:ml-auto">
                         <header className="mb-8 text-center lg:text-left flex flex-col items-center lg:items-start group">
                             {product.logo_url ? (
@@ -506,7 +506,7 @@ export default function CheckoutPhysical({ product }: Props) {
                                         <div className="group">
                                             <Input 
                                                 placeholder="Email or mobile phone number" 
-                                                className="h-12 border-gray-300 rounded-lg focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all"
+                                                className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all placeholder:text-gray-400 shadow-none hover:border-gray-400"
                                                 value={form.email}
                                                 onChange={set("email")}
                                             />
@@ -532,36 +532,36 @@ export default function CheckoutPhysical({ product }: Props) {
                                             <div className="grid grid-cols-2 gap-3">
                                                 <Input 
                                                     placeholder="First name (optional)" 
-                                                    className="h-12 border-gray-300 rounded-lg focus-visible:ring-blue-600"
+                                                    className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
                                                     value={form.firstName}
                                                     onChange={set("firstName")}
                                                 />
                                                 <Input 
                                                     placeholder="Last name" 
-                                                    className="h-12 border-gray-300 rounded-lg focus-visible:ring-blue-600"
+                                                    className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
                                                     value={form.lastName}
                                                     onChange={set("lastName")}
                                                 />
                                             </div>
                                             <Input 
                                                 placeholder="Address" 
-                                                className="h-12 border-gray-300 rounded-lg focus-visible:ring-blue-600"
+                                                className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
                                                 value={form.address}
                                                 onChange={set("address")}
                                             />
                                             <Input 
                                                 placeholder="Apartment, suite, etc. (optional)" 
-                                                className="h-12 border-gray-300 rounded-lg focus-visible:ring-blue-600"
+                                                className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
                                             />
                                             <div className="grid grid-cols-3 gap-3">
                                                 <Input 
                                                     placeholder="City" 
-                                                    className="h-12 border-gray-300 rounded-lg focus-visible:ring-blue-600"
+                                                    className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
                                                     value={form.city}
                                                     onChange={set("city")}
                                                 />
                                                 <div className="relative overflow-hidden">
-                                                    <select className="h-12 w-full border border-gray-300 rounded-lg bg-white px-3 text-sm appearance-none focus:ring-1 focus:ring-blue-600 outline-none">
+                                                    <select className="h-12 w-full border border-gray-300 rounded-md bg-white text-gray-900 px-3 text-sm appearance-none focus:ring-1 focus:ring-blue-600 outline-none hover:border-gray-400 transition-colors">
                                                         <option>Province</option>
                                                         <option>Gauteng</option>
                                                         <option>Western Cape</option>
@@ -571,7 +571,7 @@ export default function CheckoutPhysical({ product }: Props) {
                                                 </div>
                                                 <Input 
                                                     placeholder="Postal code" 
-                                                    className="h-12 border-gray-300 rounded-lg focus-visible:ring-blue-600"
+                                                    className="h-12 border-gray-300 rounded-md bg-white text-gray-900 focus-visible:ring-blue-600 shadow-none hover:border-gray-400"
                                                     value={form.postal}
                                                     onChange={set("postal")}
                                                     onBlur={(e) => handleCEPLookup(e.target.value)}
@@ -780,7 +780,7 @@ export default function CheckoutPhysical({ product }: Props) {
                 </div>
 
                 {/* Right Side: Order Summary (Desktop) */}
-                <div className="hidden lg:block w-[420px] bg-[#f5f5f5] border-l border-gray-200 p-8 pt-12 min-h-screen sticky top-0 overflow-y-auto">
+                <div className="hidden lg:block w-[420px] bg-[#f5f5f5] border-l border-gray-200 p-8 pt-12 min-h-screen sticky top-0 overflow-y-auto order-2 lg:order-2">
                     <div className="max-w-[400px] space-y-6">
                         {/* Product List */}
                         <div className="space-y-4">
