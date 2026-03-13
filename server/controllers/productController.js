@@ -1,5 +1,6 @@
 import * as productService from '../services/productService.js';
 import pool from '../db/pool.js';
+import { getRates } from '../services/exchangeRatesService.js';
 
 import { uploadBuffer } from '../services/cloudinaryService.js';
 
@@ -154,14 +155,23 @@ export async function getCheckoutData(req, res, next) {
     try {
         const productId = req.params.id?.trim();
         if (!productId) return res.status(400).json({ error: 'ID do produto é obrigatório' });
-        
+
         // Fetch all data in parallel on the server (low latency connection to DB)
-        const [product, bumps, funnel, platformResult, pixelResult] = await Promise.all([
+        // Cache global settings to speed up every checkout load
+        if (!global.platformSettingsCache || Date.now() - global.platformSettingsCacheTime > 60000) {
+            const [platformResult, pixelResult] = await Promise.all([
+                pool.query('SELECT favicon_url, logo_url, primary_color FROM platform_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null),
+                pool.query('SELECT pixel_id FROM pixel_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null)
+            ]);
+            global.platformSettingsCache = { settings: platformResult, pixel: pixelResult };
+            global.platformSettingsCacheTime = Date.now();
+        }
+
+        const [product, bumps, funnel, rates] = await Promise.all([
             productService.getProductById(productId),
             productService.getProductBumps(productId).catch(() => []),
             pool.query('SELECT * FROM funnels WHERE main_product_id = $1 LIMIT 1', [productId]).then(r => r.rows[0] || null).catch(() => null),
-            pool.query('SELECT favicon_url, logo_url FROM platform_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null),
-            pool.query('SELECT pixel_id FROM pixel_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null)
+            getRates().catch(() => null)
         ]);
 
         res.json({
@@ -169,8 +179,9 @@ export async function getCheckoutData(req, res, next) {
                 product,
                 bumps,
                 funnel,
-                settings: platformResult,
-                pixel: pixelResult
+                rates,
+                settings: global.platformSettingsCache.settings,
+                pixel: global.platformSettingsCache.pixel
             }
         });
     } catch (err) {

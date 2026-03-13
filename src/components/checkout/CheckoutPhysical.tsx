@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatPriceValue } from "@/lib/currency";
 import { type DBProduct } from "@/hooks/useProducts";
-import { useCheckoutFunnel, type FunnelOrderBump, useProductBumps } from "@/hooks/useFunnels";
+import { useCheckoutFunnel, type FunnelOrderBump, useProductBumps, type Funnel } from "@/hooks/useFunnels";
 import OrderBumps, { UpsellBanner } from "./OrderBumps";
 import {
     Shield, Lock, CheckCircle, Star, Package,
@@ -116,27 +116,44 @@ function SummaryRow({ label, value, onAction, actionLabel }: { label: string; va
     );
 }
 
-interface Props { product: DBProduct }
+interface Props { 
+    product: DBProduct;
+    initFunnel?: Funnel | null;
+    initBumps?: FunnelOrderBump[] | null;
+    initRates?: Record<string, number> | null;
+}
 
-export default function CheckoutPhysical({ product }: Props) {
+export default function CheckoutPhysical({ product, initFunnel, initBumps, initRates }: Props) {
     const format = (p: number) => formatPriceValue(p, product.currency);
     const basePrice = parseFloat(product.price);
     const t = useTranslation((product.checkout_language as Language) || 'pt');
     const primaryColor = product.primary_color || '#10B981';
 
     // Funnel (Order Bumps via funnel system)
-    const { funnel } = useCheckoutFunnel(product.id);
+    const { funnel } = useCheckoutFunnel(product.id, initFunnel);
     // Direct product bumps (product_order_bumps table) — always fetched
-    const { bumps: directBumps } = useProductBumps(product.id);
+    const { bumps: directBumps } = useProductBumps(product.id, initBumps);
     const [bumpExtraTotal, setBumpExtraTotal] = useState(0);
     const [selectedBumps, setSelectedBumps] = useState<FunnelOrderBump[]>([]);
 
     // State
     const [step, setStep] = useState(1);
     const [isSummaryOpen, setIsSummaryOpen] = useState(false);
-    const [form, setForm] = useState({
+    const INITIAL_FORM_VALUES = {
         email: "", phone: "", phoneCode: "+27", firstName: "", lastName: "",
         address: "", address2: "", city: "", province: "Gauteng", postal: "", country: "South Africa",
+    };
+
+    const [form, setForm] = useState(() => {
+        const saved = localStorage.getItem(`checkout_form_${product.id}`);
+        if (saved) {
+            try {
+                return { ...INITIAL_FORM_VALUES, ...JSON.parse(saved) };
+            } catch (e) {
+                console.error('Error parsing saved form', e);
+            }
+        }
+        return INITIAL_FORM_VALUES;
     });
     const [card, setCard] = useState({ number: "", exp: "", cvv: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -145,7 +162,7 @@ export default function CheckoutPhysical({ product }: Props) {
     const [submitted, setSubmitted] = useState(false);
     const [showUpsell, setShowUpsell] = useState(false);
     const [analyticsData, setAnalyticsData] = useState<Record<string, string | undefined>>({});
-    const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
+    const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(initRates || null);
     const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('express');
     const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
     const shippingPrice = shippingMethod === 'express' 
@@ -153,16 +170,8 @@ export default function CheckoutPhysical({ product }: Props) {
         : (parseFloat(product.standard_shipping_price) || 0);
     const totalPrice = basePrice + bumpExtraTotal + shippingPrice;
 
-    // Persistence
-    useEffect(() => {
-        const saved = localStorage.getItem(`checkout_form_${product.id}`);
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                setForm(f => ({ ...f, ...parsed }));
-            } catch (e) { console.error(e); }
-        }
-    }, [product.id]);
+    // We don't need the mount-effect since we initialize in useState.
+    // But we still need the sync-effect below.
 
     useEffect(() => {
         localStorage.setItem(`checkout_form_${product.id}`, JSON.stringify(form));
@@ -196,10 +205,11 @@ export default function CheckoutPhysical({ product }: Props) {
     };
 
     useEffect(() => {
+        if (exchangeRates) return;
         fetch('/api/exchange-rates').then(res => res.json()).then(data => {
             if (data?.rates) setExchangeRates(data.rates);
         }).catch(() => { });
-    }, []);
+    }, [exchangeRates]);
 
     useEffect(() => {
         const ua = navigator.userAgent;
@@ -684,62 +694,129 @@ export default function CheckoutPhysical({ product }: Props) {
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-4">
                                         <div>
-                                            <h2 className="text-lg font-semibold text-gray-900">Payment</h2>
-                                            <p className="text-xs text-gray-500">All transactions are secure and encrypted.</p>
+                                            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Payment</h2>
+                                            <p className="text-sm text-gray-500 mt-1">All transactions are secure and encrypted.</p>
                                         </div>
                                         
-                                        <div className="border border-blue-600 bg-blue-50/30 rounded-lg overflow-hidden shadow-sm">
-                                            <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-sm font-medium text-gray-900">Paystack</span>
-                                                </div>
+                                        <div className="border border-[#1773B0] rounded-xl overflow-hidden shadow-sm flex flex-col">
+                                            <div className="bg-white p-4 border-b border-[#1773B0] flex items-center justify-between">
+                                                <span className="text-[15px] font-medium text-gray-900">Paystack</span>
                                                 <div className="flex items-center gap-1.5">
-                                                    <CreditCard className="h-4 w-4 text-gray-400" />
-                                                    <span className="text-[10px] font-medium text-gray-400">Secure Payment</span>
+                                                    <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm">
+                                                        <svg className="w-[22px]" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <circle cx="8" cy="8" r="6" fill="#EB001B"/>
+                                                            <circle cx="16" cy="8" r="6" fill="#F79E1B"/>
+                                                            <path d="M12 4.47055C10.999 5.30232 10.3529 6.57398 10.3529 8C10.3529 9.42602 10.999 10.6977 12 11.5294C13.001 10.6977 13.6471 9.42602 13.6471 8C13.6471 6.57398 13.001 5.30232 12 4.47055Z" fill="#FF5F00"/>
+                                                        </svg>
+                                                    </span>
+                                                    <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm font-bold text-[#1434CB] bg-white">
+                                                        VISA
+                                                    </span>
+                                                    <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm bg-[#ffcc00]">
+                                                        <span className="text-[#000] font-bold text-[8px]">MTN</span>
+                                                    </span>
+                                                    <span className="flex items-center justify-center w-[28px] h-[24px] border border-gray-200 rounded text-xs font-medium text-gray-600 bg-white shadow-sm">+5</span>
                                                 </div>
                                             </div>
-                                            <div className="p-12 flex flex-col items-center justify-center text-center space-y-4">
-                                                <div className="w-20 h-16 bg-gray-100 rounded-md flex items-center justify-center relative">
-                                                    <div className="w-12 h-8 border-2 border-gray-300 rounded"></div>
-                                                    <div className="absolute inset-0 flex items-center justify-center opacity-20 rotate-12">
-                                                        <Icons.Paystack className="w-12 h-12" />
-                                                    </div>
-                                                </div>
-                                                <p className="text-sm text-gray-600 max-w-[280px]">
-                                                    You'll be redirected to Paystack to complete your purchase.
+                                            <div className="bg-[#f5f5f5] p-8 flex items-center justify-center text-center">
+                                                <p className="text-[15px] text-gray-900 font-medium">
+                                                    You'll be redirected to Paystack to complete your<br />purchase.
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h2 className="text-lg font-semibold text-gray-900">Billing address</h2>
-                                        <p className="text-xs text-gray-500">Select the address that matches your card or payment method.</p>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Billing address</h2>
+                                            <p className="text-sm text-gray-500 mt-1">Select the address that matches your card or payment method.</p>
+                                        </div>
                                         
-                                        <div className="border border-gray-200 rounded-lg divide-y overflow-hidden shadow-sm">
-                                            <label 
-                                                className={`flex items-center gap-3 p-4 cursor-pointer transition-colors ${billingSameAsShipping ? 'bg-blue-50/50' : 'hover:bg-gray-50'}`}
+                                        <div className="border border-gray-300 rounded-xl bg-white shadow-sm flex flex-col relative overflow-hidden">
+                                            {/* Same as Shipping */}
+                                            <div 
+                                                className={`flex items-center p-4 cursor-pointer relative transition-colors ${billingSameAsShipping ? 'bg-[#f4f8fb] z-10' : 'hover:bg-gray-50'}`}
                                                 onClick={() => setBillingSameAsShipping(true)}
                                             >
-                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${billingSameAsShipping ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
-                                                    {billingSameAsShipping && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                {billingSameAsShipping && <div className="absolute inset-0 border border-[#1773B0] rounded-t-xl pointer-events-none" />}
+                                                <div className="flex items-center gap-4 w-full">
+                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${billingSameAsShipping ? 'border-[#1773B0] bg-[#1773B0]' : 'border-gray-300 bg-white'}`}>
+                                                        {billingSameAsShipping && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                    </div>
+                                                    <span className="text-[15px] font-medium text-gray-900">Same as shipping address</span>
                                                 </div>
-                                                <span className="text-sm font-medium text-gray-900">{t.sameAsShipping}</span>
-                                            </label>
-                                            <label 
-                                                className={`flex items-center gap-3 p-4 cursor-pointer transition-colors ${!billingSameAsShipping ? 'bg-blue-50/50' : 'hover:bg-gray-50'}`}
-                                                onClick={() => setBillingSameAsShipping(false)}
-                                            >
-                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${!billingSameAsShipping ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
-                                                    {!billingSameAsShipping && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                            </div>
+                                            
+                                            {/* Separator, hidden if first is selected since border handles it */}
+                                            {!billingSameAsShipping && <div className="h-[1px] bg-gray-300 w-full" />}
+                                            
+                                            {/* Different Billing */}
+                                            <div className={`flex flex-col relative transition-colors ${!billingSameAsShipping ? 'bg-[#f4f8fb] z-10' : ''}`}>
+                                                <div 
+                                                    className={`flex items-center p-4 cursor-pointer ${!billingSameAsShipping ? '' : 'hover:bg-gray-50'}`}
+                                                    onClick={() => setBillingSameAsShipping(false)}
+                                                >
+                                                    {!billingSameAsShipping && <div className="absolute top-0 left-0 w-full h-[56px] border border-[#1773B0] pointer-events-none z-10" style={{ borderRadius: !billingSameAsShipping ? '0' : '0' }} />}
+                                                    {!billingSameAsShipping && <div className="absolute top-0 left-0 w-full h-[56px] border-b border-[#1773B0] pointer-events-none z-10" />}
+                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors z-20 ${!billingSameAsShipping ? 'border-[#1773B0] bg-[#1773B0]' : 'border-gray-300 bg-white'}`}>
+                                                        {!billingSameAsShipping && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                    </div>
+                                                    <span className="text-[15px] font-medium text-gray-900 ml-4 z-20">Use a different billing address</span>
                                                 </div>
-                                                <span className="text-sm font-medium text-gray-900">{t.useDifferentBilling}</span>
-                                            </label>
+
+                                                {/* Form Fields for different billing */}
+                                                {!billingSameAsShipping && (
+                                                    <div className="bg-[#f5f5f5] p-5 border-t-0 flex flex-col gap-4">
+                                                        <div className="relative">
+                                                            <select className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] appearance-none focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none">
+                                                                <option>South Africa</option>
+                                                            </select>
+                                                            <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none">Country/Region</label>
+                                                            <ChevronDown className="absolute right-3 top-4 h-4 w-4 text-gray-500 pointer-events-none" />
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="relative">
+                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="First name (optional)" defaultValue={form.name.split(' ')[0]} />
+                                                                <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">First name (optional)</label>
+                                                            </div>
+                                                            <div className="relative">
+                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Last name" defaultValue={form.name.split(' ').slice(1).join(' ')} />
+                                                                <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">Last name</label>
+                                                            </div>
+                                                        </div>
+                                                        <div className="relative">
+                                                            <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Address" defaultValue={form.address} />
+                                                            <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">Address</label>
+                                                        </div>
+                                                        <div className="relative">
+                                                            <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Apartment, suite, etc. (optional)" />
+                                                            <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">Apartment, suite, etc. (optional)</label>
+                                                        </div>
+                                                        <div className="grid grid-cols-[1fr_1fr_1fr] gap-4">
+                                                            <div className="relative">
+                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="City" defaultValue={form.city} />
+                                                                <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">City</label>
+                                                            </div>
+                                                            <div className="relative">
+                                                                <select className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] appearance-none focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none">
+                                                                    <option>{form.state || 'Gauteng'}</option>
+                                                                </select>
+                                                                <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none">Province</label>
+                                                                <ChevronDown className="absolute right-3 top-4 h-4 w-4 text-gray-500 pointer-events-none" />
+                                                            </div>
+                                                            <div className="relative">
+                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Postal code" defaultValue={form.postal} />
+                                                                <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">Postal code</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-                                        <button className="text-sm text-blue-600 flex items-center gap-1.5 order-2 sm:order-1 transition-colors hover:text-blue-800" onClick={() => setStep(2)}>
+                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 pb-2">
+                                        <button className="text-[15px] text-[#1773B0] flex items-center gap-2 order-2 sm:order-1 transition-colors hover:text-blue-800" onClick={() => setStep(2)}>
                                             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="rotate-180">
                                                 <path d="M1 9L5 5L1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                             </svg>
@@ -748,7 +825,7 @@ export default function CheckoutPhysical({ product }: Props) {
                                         <Button 
                                             onClick={handleCheckout}
                                             disabled={isSubmitting}
-                                            className="w-full sm:w-auto h-14 px-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-xl shadow-blue-600/20 order-1 sm:order-2 transition-all transform hover:scale-[1.02]"
+                                            className="w-full sm:w-auto h-[60px] px-10 bg-[#0058e4] hover:bg-blue-700 text-white text-[15px] font-bold rounded-lg shadow-sm order-1 sm:order-2 transition-all"
                                         >
                                             {isSubmitting ? (
                                                 <div className="flex items-center gap-2">

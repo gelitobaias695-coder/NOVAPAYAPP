@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import MetaPixel from "@/components/MetaPixel";
 
-const CheckoutPhysical = lazy(() => import("@/components/checkout/CheckoutPhysical"));
-const CheckoutDigital = lazy(() => import("@/components/checkout/CheckoutDigital"));
+import CheckoutPhysical from "@/components/checkout/CheckoutPhysical";
+import CheckoutDigital from "@/components/checkout/CheckoutDigital";
 
 
 export default function CheckoutPage() {
@@ -22,8 +22,10 @@ export default function CheckoutPage() {
     const shouldFallback = !isLoadingInit && !initData;
     const { product: fallbackProduct, isLoading: isLoadingFallback, error: fallbackError } = useProduct(shouldFallback ? id : undefined);
     
-    const product = initData?.product || fallbackProduct;
-    const isLoading = isLoadingInit || (shouldFallback && isLoadingFallback);
+    const cachedProduct = queryClient.getQueryData<any>(['product', id]);
+    const product = initData?.product || fallbackProduct || cachedProduct;
+    // isLoading is only true if we don't even have a cached version
+    const isLoading = (isLoadingInit || (shouldFallback && isLoadingFallback)) && !product;
     const error = initError || (shouldFallback ? fallbackError : null);
 
     // Seed other queries to avoid waterfalls in child components
@@ -32,16 +34,19 @@ export default function CheckoutPage() {
             if (initData.product) queryClient.setQueryData(['product', id], initData.product);
             if (initData.funnel) queryClient.setQueryData(['funnel', id], initData.funnel);
             if (initData.bumps) queryClient.setQueryData(['bumps', id], initData.bumps);
-            
-            // Background prefetch the components
-            import("@/components/checkout/CheckoutPhysical");
-            import("@/components/checkout/CheckoutDigital");
         }
     }, [initData, id, queryClient]);
 
     const errorMsg = error ? (error as Error).message : null;
 
-    if (isLoading) return null;
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary opacity-20" />
+                <p className="mt-4 text-xs font-medium text-muted-foreground animate-pulse tracking-widest uppercase">NovaPay</p>
+            </div>
+        );
+    }
 
     if (!product) {
         return (
@@ -80,8 +85,8 @@ export default function CheckoutPage() {
             
             <Suspense fallback={null}>
                 {product.type === "digital"
-                    ? <CheckoutDigital product={product} />
-                    : <CheckoutPhysical product={product} />}
+                    ? <CheckoutDigital product={product} initFunnel={initData?.funnel} initBumps={initData?.bumps} initRates={initData?.rates} />
+                    : <CheckoutPhysical product={product} initFunnel={initData?.funnel} initBumps={initData?.bumps} initRates={initData?.rates} />}
             </Suspense>
         </>
     );

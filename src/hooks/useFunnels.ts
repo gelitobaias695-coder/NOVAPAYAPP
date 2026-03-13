@@ -113,7 +113,7 @@ export function useFunnels() {
     return { funnels, isLoading, error, fetchFunnels, createFunnel, updateFunnel, deleteFunnel };
 }
 
-export function useCheckoutFunnel(productId: string | undefined) {
+export function useCheckoutFunnel(productId: string | undefined, initialData?: Funnel | null) {
     const query = useQuery({
         queryKey: ['funnel', productId],
         queryFn: async () => {
@@ -125,8 +125,9 @@ export function useCheckoutFunnel(productId: string | undefined) {
             const json = await res.json();
             return json.data as Funnel;
         },
-        enabled: !!productId,
+        enabled: !!productId && !initialData,
         staleTime: 60 * 1000,
+        initialData: initialData || undefined
     });
 
     return { funnel: query.data, isLoading: query.isLoading, refetch: query.refetch };
@@ -149,7 +150,7 @@ export async function logBumpAction(params: {
     } catch { /* fail silently */ }
 }
 
-export function useProductBumps(productId: string | undefined) {
+export function useProductBumps(productId: string | undefined, initialData?: FunnelOrderBump[] | null) {
     const query = useQuery({
         queryKey: ['bumps', productId],
         queryFn: async () => {
@@ -175,8 +176,9 @@ export function useProductBumps(productId: string | undefined) {
                 enabled: (b.enabled as boolean) !== false,
             })) as FunnelOrderBump[];
         },
-        enabled: !!productId,
+        enabled: !!productId && !initialData,
         staleTime: 60 * 1000,
+        initialData: initialData || undefined
     });
 
     return { bumps: query.data ?? [], isLoading: query.isLoading, refetch: query.refetch };

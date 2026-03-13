@@ -415,7 +415,14 @@ export const translations = {
     }
 };
 
-export function useTranslation(lang: Language = 'pt', section: 'checkout' | 'success' | 'upsell' = 'checkout'): any {
+
+export type TranslationSection = keyof typeof translations.pt;
+
+export function useTranslation(
+    lang: Language = 'pt', 
+    section: TranslationSection = 'checkout'
+): any {
+    const langData = translations[lang] || translations.pt;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (translations[lang] as any)?.[section] || (translations['pt'] as any)[section];
+    return (langData as any)[section] || (translations.pt as any)[section];
 }

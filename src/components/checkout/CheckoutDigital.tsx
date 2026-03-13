@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatPriceValue } from "@/lib/currency";
 import { type DBProduct } from "@/hooks/useProducts";
-import { useCheckoutFunnel, useProductBumps, type FunnelOrderBump } from "@/hooks/useFunnels";
+import { useCheckoutFunnel, useProductBumps, type FunnelOrderBump, type Funnel } from "@/hooks/useFunnels";
 import OrderBumps from "./OrderBumps";
 import {
     Shield, Lock, CheckCircle, Star, Package,
@@ -40,17 +40,22 @@ function Step({ n, label, active, done }: { n: number; label: string; active: bo
     );
 }
 
-interface Props { product: DBProduct }
+interface Props { 
+    product: DBProduct;
+    initFunnel?: Funnel | null;
+    initBumps?: FunnelOrderBump[] | null;
+    initRates?: Record<string, number> | null;
+}
 
-export default function CheckoutDigital({ product }: Props) {
+export default function CheckoutDigital({ product, initFunnel, initBumps, initRates }: Props) {
     const format = (p: number) => formatPriceValue(p, product.currency);
     const price = parseFloat(product.price);
     const t = useTranslation((product.checkout_language as Language) || 'pt');
     const primaryColor = product.primary_color || '#10B981';
 
     // Bumps: funnel + direct
-    const { funnel } = useCheckoutFunnel(product.id);
-    const { bumps: directBumps } = useProductBumps(product.id);
+    const { funnel } = useCheckoutFunnel(product.id, initFunnel);
+    const { bumps: directBumps } = useProductBumps(product.id, initBumps);
     const [bumpExtraTotal, setBumpExtraTotal] = useState(0);
     const [selectedBumps, setSelectedBumps] = useState<FunnelOrderBump[]>([]);
     const totalPrice = price + bumpExtraTotal;
@@ -70,13 +75,14 @@ export default function CheckoutDigital({ product }: Props) {
     const [submitted, setSubmitted] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [analyticsData, setAnalyticsData] = useState<any>({});
-    const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
+    const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(initRates || null);
 
     useEffect(() => {
+        if (exchangeRates) return;
         fetch('/api/exchange-rates').then(res => res.json()).then(data => {
             if (data?.rates) setExchangeRates(data.rates);
         }).catch(() => { });
-    }, []);
+    }, [exchangeRates]);
 
     useEffect(() => {
         const ua = navigator.userAgent;
@@ -380,60 +386,53 @@ export default function CheckoutDigital({ product }: Props) {
                                 <p className="text-gray-500 text-sm mt-0.5">All transactions are secure and encrypted.</p>
                             </div>
 
-                            <div className="border-2 border-primary rounded-lg overflow-hidden bg-white shadow-sm ring-4 flex flex-col ring-primary/10 mb-4 transition-all" style={{ borderColor: product.primary_color }}>
-                                <div className="flex items-center justify-between p-3.5 bg-gray-50/50">
-                                    <div className="flex flex-wrap items-center justify-center gap-1.5 w-full">
-                                        <div className="bg-white border border-gray-200 rounded shadow-sm flex items-center justify-center w-[36px] h-[24px]">
-                                            <svg viewBox="0 0 24 15" width="22" height="14" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7.5" r="7" fill="#EA001B" /><circle cx="17" cy="7.5" r="7" fill="#FFA200" fillOpacity="0.8" /></svg>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded shadow-sm flex items-center justify-center w-[36px] h-[24px]">
-                                            <svg viewBox="0 0 32 10" width="26" height="10" xmlns="http://www.w3.org/2000/svg"><path fill="#1434CB" d="M12.6,0l-1.3,8.7h2.7l1.3-8.7H12.6z M20.3,0.2c-0.6-0.2-1.5-0.4-2.6-0.4c-2.9,0-4.9,1.5-4.9,3.6 c0,1.6,1.4,2.4,2.5,3c1.1,0.5,1.5,0.9,1.5,1.4c0,0.7-0.9,1.1-1.7,1.1c-1.1,0-1.8-0.2-2.7-0.5l-0.4-1.8c0,0,0,0,0,0 c0,0-1,4.7-1,4.7h2.8c0.8,0,1.4-0.1,2.8-0.4c3.1-0.6,5.1-2.1,5.1-4.2c0-1.2-0.8-2.2-2.5-3c-1-0.5-1.6-0.8-1.6-1.3 c0-0.4,0.5-0.9,1.6-0.9c0.9,0,1.6,0.2,2.2,0.4L20.3,0.2z M25.8,0l-2.2,6l-0.8-4.2c-0.2-0.8-0.8-1.4-1.6-1.6l-3-0.2L18,1.4 c0.6,0.1,1.2,0.4,1.8,0.7c0.3,0.2,0.4,0.4,0.5,0.8l1.6,5.8h2.9L28.7,0H25.8z M8,0l-2,6.1L4.8,1.2C4.6,0.5,4-0.1,3.3-0.1L0,0l0,0 c0.7,0.2,1.5,0.4,2,0.7c0.3,0.2,0.4,0.6,0.6,1.2l1.6,6.8h2.8L10.9,0H8z" /></svg>
-                                        </div>
-                                        <div className="bg-[#0070CE] border border-[#0070CE] rounded shadow-sm flex items-center justify-center w-[36px] h-[24px]" title="American Express">
-                                            <svg viewBox="0 0 24 16" width="20" height="14" xmlns="http://www.w3.org/2000/svg"><text x="12" y="7" fontSize="5.5" fontWeight="bold" fill="#fff" textAnchor="middle" fontFamily="Arial, sans-serif">AM</text><text x="12" y="13" fontSize="5.5" fontWeight="bold" fill="#fff" textAnchor="middle" fontFamily="Arial, sans-serif">EX</text></svg>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded shadow-sm flex items-center justify-center w-[36px] h-[24px]" title="MTN Mobile Money">
-                                            <div className="bg-[#ffcc00] w-full h-full rounded-[2px] flex items-center justify-center text-[7px] font-bold text-[#004e6e] leading-[1] text-center">MTN<br />MoMo</div>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded shadow-sm flex flex-col items-center justify-center w-[36px] h-[24px]" title="AirtelTigo">
-                                            <div className="flex items-center text-[5.5px] tracking-tight font-black"><span className="text-[#FF0000]">airtel</span><span className="text-[#003180]">tigo</span></div>
-                                            <span className="text-[4px] text-[#003180] font-bold mt-[1px]">Money</span>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded shadow-sm flex items-center justify-center w-[36px] h-[24px]" title="Airtel Money">
-                                            <svg viewBox="0 0 100 100" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path fill="#FF0000" d="M79.4,32C71.3,16,56.5,5.6,39,4.2C15.4,2.3-1.6,24,0.1,47.7c1.3,17.4,13.2,33,30.3,38c14,4.1,28.8,0,39.6-9.6 c2.7-2.4,1.4-7-2.1-7.8c-1.8-0.4-3.8,0-5.3,1.1c-8.4,6.5-20.1,9.4-30.8,6.2c-12.8-3.9-22-16-22.9-29.4 c-1.2-16.7,11.5-31.5,28.1-32.9c12.3-1.1,23.3,6.2,29,17.1c3.1,6,3.6,13,1.4,19.3c-2.9,8.4-10.4,14-19.3,14H46 c-4.2,0-7.6-3.4-7.6-7.6v-2.1c0-4.2,3.4-7.6,7.6-7.6h8.7c2.1,0,3.8-1.7,3.8-3.8s-1.7-3.8-3.8-3.8H46c-8.4,0-15.2,6.8-15.2,15.2 v2.1c0,8.4,6.8,15.2,15.2,15.2h2.5c12.4,0,23.1-7.8,27.1-19.6C78.4,47.8,77.9,39.2,79.4,32z" /></svg>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded shadow-sm flex items-center justify-center w-[36px] h-[24px]" title="M-Pesa">
-                                            <div className="bg-[#41b549] w-full h-full rounded-[2px] flex items-center justify-center text-[7px] font-bold text-white tracking-tighter">M-PESA</div>
-                                        </div>
+                            <div className="border border-[#1773B0] rounded-xl overflow-hidden shadow-sm flex flex-col mb-4">
+                                <div className="bg-white p-4 border-b border-[#1773B0] flex items-center justify-between">
+                                    <span className="text-[15px] font-medium text-gray-900">Paystack</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm">
+                                            <svg className="w-[22px]" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="8" cy="8" r="6" fill="#EB001B"/>
+                                                <circle cx="16" cy="8" r="6" fill="#F79E1B"/>
+                                                <path d="M12 4.47055C10.999 5.30232 10.3529 6.57398 10.3529 8C10.3529 9.42602 10.999 10.6977 12 11.5294C13.001 10.6977 13.6471 9.42602 13.6471 8C13.6471 6.57398 13.001 5.30232 12 4.47055Z" fill="#FF5F00"/>
+                                            </svg>
+                                        </span>
+                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm font-bold text-[#1434CB] bg-white">
+                                            VISA
+                                        </span>
+                                        <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm bg-[#ffcc00]">
+                                            <span className="text-[#000] font-bold text-[8px]">MTN</span>
+                                        </span>
+                                        <span className="flex items-center justify-center w-[28px] h-[24px] border border-gray-200 rounded text-xs font-medium text-gray-600 bg-white shadow-sm">+5</span>
                                     </div>
                                 </div>
-                                <div className="bg-white p-5 flex flex-col items-center justify-center text-center border-t border-gray-200">
-                                    <svg className="h-10 w-10 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                <div className="bg-[#f5f5f5] p-6 lg:p-8 flex flex-col items-center justify-center text-center">
                                     <div className="w-full">
                                         {product.currency !== 'ZAR' ? (
-                                            <div className="flex flex-col items-center w-full">
-                                                <div className="text-sm text-gray-700 bg-gray-50 border border-gray-200 shadow-sm p-4 rounded-lg w-full max-w-sm mb-4 text-center">
+                                            <div className="flex flex-col items-center w-full space-y-4">
+                                                <div className="text-sm text-gray-700 bg-white border border-gray-200 shadow-sm p-4 rounded-lg w-full max-w-sm text-center font-medium">
                                                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                                     {((t as any).zarConversionInfo || "Para garantir segurança e proteção antifraude, o pagamento será processado em ZAR (Rand Sul-Africano).\nO valor será automaticamente convertido pelo seu banco na cobrança.\nVocê verá o valor final em ZAR na próxima etapa antes de confirmar.").split('\n').map((line: string, idx: number) => (
                                                         <p key={idx} className="mb-1 leading-relaxed">{line}</p>
                                                     ))}
+                                                    
+                                                    {exchangeRates && exchangeRates[product.currency] && (
+                                                        <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col items-center">
+                                                            <span className="text-gray-500 text-xs uppercase tracking-wide mb-1 flex items-center gap-1">
+                                                                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                                                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                                                {(t as any).currentConversion || "Conversão atual"}
+                                                            </span>
+                                                            <span className="text-[#1773B0] font-bold text-base">
+                                                                {product.currency} {totalPrice.toFixed(2)} = ZAR {(totalPrice / exchangeRates[product.currency]).toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {exchangeRates && exchangeRates[product.currency] && (
-                                                    <div className="border border-green-200 rounded-lg p-3 inline-block bg-green-50 shadow-sm w-full max-w-[280px]">
-                                                        <p className="text-gray-900 font-bold mb-1 flex items-center justify-center gap-1.5 text-xs uppercase tracking-wide">
-                                                            <svg className="h-3.5 w-3.5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                                                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                                            {(t as any).currentConversion || "Conversão atual"}:
-                                                        </p>
-                                                        <span className="text-primary font-bold text-base" style={{ color: product.primary_color }}>
-                                                            {product.currency} {totalPrice.toFixed(2)} = ZAR {(totalPrice / exchangeRates[product.currency]).toFixed(2)}
-                                                        </span>
-                                                    </div>
-                                                )}
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-gray-600 font-medium max-w-sm mx-auto">
-                                                {t.checkoutSecurityMsg}
+                                            <p className="text-[15px] text-gray-900 font-medium max-w-sm mx-auto">
+                                                You'll be redirected to Paystack to complete your purchase.
                                             </p>
                                         )}
                                     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,9 +62,9 @@ function PaystackSection() {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchSettings();
-  });
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -248,9 +248,9 @@ function MetaPixelSection() {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchSettings();
-  });
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -381,9 +381,9 @@ function UTMifySection() {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchSettings();
-  });
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -505,9 +505,9 @@ function EmailSection() {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchSettings();
-  });
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
