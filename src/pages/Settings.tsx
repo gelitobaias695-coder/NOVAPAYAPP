@@ -328,7 +328,7 @@ function E2PaymentsSettings() {
             <Input
               placeholder={saved?.wallet_mpesa ? 'Atual: ' + saved.wallet_mpesa : "Ex: 993627"}
               value={form.wallet_mpesa}
-              onChange={e => setForm(f => ({ ...f, wallet_mpesa: e.target.value }))}
+              onChange={e => setForm(f => ({ ...f, wallet_mpesa: e.target.value.replace(/#/g, '') }))}
             />
           </div>
 
@@ -337,7 +337,7 @@ function E2PaymentsSettings() {
             <Input
                placeholder={saved?.wallet_emola ? 'Atual: ' + saved.wallet_emola : "Ex: 993626"}
               value={form.wallet_emola}
-              onChange={e => setForm(f => ({ ...f, wallet_emola: e.target.value }))}
+              onChange={e => setForm(f => ({ ...f, wallet_emola: e.target.value.replace(/#/g, '') }))}
             />
           </div>
         </div>

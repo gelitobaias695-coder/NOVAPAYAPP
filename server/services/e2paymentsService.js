@@ -21,6 +21,8 @@ export async function getSettings() {
 
 export async function saveSettings(data) {
     const { client_id, client_secret, wallet_mpesa, wallet_emola, is_live } = data;
+    const cleanMpesa = wallet_mpesa ? wallet_mpesa.replace(/#/g, '').trim() : '';
+    const cleanEmola = wallet_emola ? wallet_emola.replace(/#/g, '').trim() : '';
     const res = await pool.query(
         `INSERT INTO gateway_settings (gateway_name, public_key, secret_key, e2p_wallet_mpesa, e2p_wallet_emola, is_live, updated_at)
          VALUES ('e2payments', $1, $2, $3, $4, $5, NOW())
@@ -32,7 +34,7 @@ export async function saveSettings(data) {
             is_live = EXCLUDED.is_live,
             updated_at = NOW()
          RETURNING *`,
-        [client_id, client_secret, wallet_mpesa, wallet_emola, is_live]
+        [client_id, client_secret, cleanMpesa, cleanEmola, is_live]
     );
     return res.rows[0];
 }
