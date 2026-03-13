@@ -160,6 +160,11 @@ export default function CheckoutPhysical({ product, initFunnel, initBumps, initR
     const [loadingInfo, setLoadingInfo] = useState(false);
     const [orderId, setOrderId] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
+    
+    // E2Payments state
+    const [e2pNetwork, setE2pNetwork] = useState<'mpesa' | 'emola'>('mpesa');
+    const [e2pPhone, setE2pPhone] = useState('');
+
     const [showUpsell, setShowUpsell] = useState(false);
     const [analyticsData, setAnalyticsData] = useState<Record<string, string | undefined>>({});
     const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(initRates || null);
@@ -306,9 +311,31 @@ export default function CheckoutPhysical({ product, initFunnel, initBumps, initR
             const dataOrder = await resOrder.json();
             const currentOrderId = dataOrder.data?.id || orderId;
             if (currentOrderId && !orderId) setOrderId(currentOrderId);
+            const searchParams = typeof window !== 'undefined' ? window.location.search : '';
+
+            if (product.payment_gateway === 'e2payments') {
+                if (!e2pPhone) throw new Error("Telemóvel é obrigatório para pagamento via E2Payments");
+                const resE2P = await fetch('/api/e2payments/initialize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: currentOrderId,
+                        phone: e2pPhone,
+                        network: e2pNetwork,
+                        amount: totalPrice
+                    })
+                });
+
+                if (!resE2P.ok) {
+                    const errData = await resE2P.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Falha ao conectar com provedor (M-Pesa/e-Mola). Mande um WhatsApp para suporte.');
+                }
+
+                window.location.href = `/checkout/sucesso${searchParams}${searchParams ? '&' : '?'}order_id=${currentOrderId}&e2p=1`;
+                return;
+            }
 
             // 2. Comunicar com a API Paystack para renderizar a página de pagamento
-            const searchParams = typeof window !== 'undefined' ? window.location.search : '';
             const resPaystack = await fetch('/api/paystack/initialize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -734,10 +761,39 @@ export default function CheckoutPhysical({ product, initFunnel, initBumps, initR
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="bg-[#f5f5f5] p-8 flex items-center justify-center text-center">
-                                                <p className="text-[15px] text-gray-900 font-medium">
-                                                    You'll be redirected to {product.payment_gateway === 'e2payments' ? 'E2payments' : 'Paystack'} to complete your<br />purchase.
-                                                </p>
+                                            <div className="bg-[#f5f5f5] p-8 flex flex-col items-center justify-center text-center">
+                                                {product.payment_gateway === 'e2payments' ? (
+                                                    <div className="flex flex-col items-center w-full space-y-4 max-w-xs mx-auto">
+                                                        <div className="w-full flex gap-2">
+                                                            <button
+                                                                className={`flex-1 py-2 border rounded-md text-sm font-bold flex flex-col items-center justify-center gap-1 transition-all ${e2pNetwork === 'mpesa' ? 'border-[#41b549] bg-[#41b549]/10 text-[#41b549]' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50 shadow-sm'}`}
+                                                                onClick={() => setE2pNetwork('mpesa')}
+                                                            >
+                                                                M-Pesa
+                                                            </button>
+                                                            <button
+                                                                className={`flex-1 py-2 border rounded-md text-sm font-bold flex flex-col items-center justify-center gap-1 transition-all ${e2pNetwork === 'emola' ? 'border-[#ffcc00] bg-[#ffcc00]/20 text-[#cca300]' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50 shadow-sm'}`}
+                                                                onClick={() => setE2pNetwork('emola')}
+                                                            >
+                                                                e-Mola
+                                                            </button>
+                                                        </div>
+                                                        <div className="w-full space-y-1.5 text-left mt-2">
+                                                            <Label className="text-gray-700 font-medium text-sm">N° de Telemóvel ({e2pNetwork === 'mpesa' ? 'M-Pesa' : 'e-Mola'})</Label>
+                                                            <Input 
+                                                                placeholder="Ex: 841234567" 
+                                                                value={e2pPhone} 
+                                                                onChange={(e) => setE2pPhone(e.target.value)}
+                                                                className="text-center text-lg font-bold tracking-wider h-12 shadow-sm border-gray-300"
+                                                                maxLength={9}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-[15px] text-gray-900 font-medium">
+                                                        You'll be redirected to Paystack to complete your<br />purchase.
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

@@ -9,6 +9,8 @@ import { useTranslation, type Language } from "@/components/checkout/translation
 export default function SuccessPage() {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get("order_id") || searchParams.get("orderId") || searchParams.get("reference");
+    const isE2P = searchParams.get("e2p") === "1";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -114,14 +116,22 @@ export default function SuccessPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">{t.thankYou || "Obrigado!"}</h1>
-                    <p className="text-zinc-500 font-medium">{t.orderConfirmed?.replace('{id}', order.id?.slice(0, 8)) || `Seu pedido #${order.id?.slice(0, 8)} foi confirmado.`}</p>
+                    <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">
+                        {order.status === 'pending' && isE2P ? "Aguardando Pagamento!" : t.thankYou || "Obrigado!"}
+                    </h1>
+                    <p className="text-zinc-500 font-medium">
+                        {order.status === 'pending' && isE2P 
+                            ? "Por favor, verifique o seu telemóvel as instruções do M-Pesa / e-Mola e insira o seu PIN para concluir a compra." 
+                            : (t.orderConfirmed?.replace('{id}', order.id?.slice(0, 8)) || `Seu pedido #${order.id?.slice(0, 8)} foi confirmado.`)}
+                    </p>
                 </div>
 
                 <div className="bg-zinc-50 rounded-xl p-4 text-left space-y-3 border border-zinc-100">
                     <div className="flex justify-between items-center pb-2 border-b border-zinc-200/60">
                         <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">{t.summary || "Resumo"}</span>
-                        <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{t.paid || "PAGO"}</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
+                            {order.status === 'pending' ? "PENDENTE" : (t.paid || "PAGO")}
+                        </span>
                     </div>
                     <div className="space-y-2">
                         <div className="flex justify-between items-center">

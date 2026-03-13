@@ -200,6 +200,173 @@ function PaystackSettings() {
   );
 }
 
+// ─── E2Payments Settings Section ─────────────────────────────────────────────────
+function E2PaymentsSettings() {
+  const { toast } = useToast();
+  const [form, setForm] = useState({
+    client_id: "",
+    client_secret: "",
+    wallet_mpesa: "",
+    wallet_emola: "",
+    is_live: true,
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [saved, setSaved] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showSecret, setShowSecret] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/e2payments/settings", { cache: "no-store" })
+      .then(r => r.json())
+      .then(j => { if (j.data) setSaved(j.data); })
+      .catch(() => { })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/e2payments/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erro ao salvar");
+      setSaved(json.data);
+      setForm(f => ({ ...f, client_secret: "" }));
+      toast({
+        title: "✅ Chaves E2Payments salvas!",
+        description: "Configurações de pagamento atualizadas no Neon com sucesso.",
+      });
+    } catch (err: unknown) {
+      toast({
+        title: "❌ Erro ao salvar",
+        description: err instanceof Error ? err.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Card className="border-2 border-primary/20 shadow-lg shadow-primary/5">
+      <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent pb-4">
+        <CardTitle className="text-base flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500/10">
+            <CreditCard className="h-4 w-4 text-green-600" />
+          </div>
+          Configurações E2Payments (Moçambique)
+          <Badge className={`ml-auto text-xs ${saved?.is_live ? "bg-green-500/10 text-green-600 border-green-500/30" : "bg-yellow-500/10 text-yellow-600 border-yellow-500/30"}`} variant="outline">
+            {saved?.is_live ? "🟢 Produção (Live)" : "🟡 Sandbox"}
+          </Badge>
+        </CardTitle>
+        <p className="text-xs text-muted-foreground mt-1">
+          Pagamentos via M-Pesa e e-Mola usando E2Payments.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-5 pt-5">
+        {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Carregando configurações...
+            </div>
+          ) : saved?.client_id ? (
+            <div className="rounded-xl bg-green-50 border border-green-200 p-4 dark:bg-green-950/30 dark:border-green-800">
+              <div className="flex items-center gap-2 text-green-700 dark:text-green-400 mb-2">
+                <CheckCircle className="h-4 w-4" />
+                <span className="text-sm font-semibold">Gateway E2Payments configurado</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div><span className="font-medium">Client ID:</span> {saved.client_id.slice(0, 8)}…</div>
+                <div><span className="font-medium">M-Pesa Wallet:</span> {saved.wallet_mpesa || "—"}</div>
+                <div><span className="font-medium">e-Mola Wallet:</span> {saved.wallet_emola || "—"}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 dark:bg-amber-950/30 dark:border-amber-800">
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm font-semibold">E2Payments não configurada.</span>
+              </div>
+            </div>
+        )}
+
+        <Separator />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label>Client ID</Label>
+            <Input
+              placeholder={saved?.client_id ? "Atual: " + saved.client_id.slice(0, 8) + '…' : "xxxxxxxx-xxxx-xxxx..."}
+              value={form.client_id}
+              onChange={e => setForm(f => ({ ...f, client_id: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1.5">
+              <Lock className="h-3.5 w-3.5 text-primary" /> Client Secret
+            </Label>
+            <div className="relative">
+              <Input
+                type={showSecret ? "text" : "password"}
+                placeholder={saved?.client_secret ? "Atual: *********** — Deixe em branco para manter" : "xxxxxxxx"}
+                value={form.client_secret}
+                onChange={e => setForm(f => ({ ...f, client_secret: e.target.value }))}
+                className="pr-10"
+              />
+              <button onClick={() => setShowSecret(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label>Wallet ID (M-Pesa)</Label>
+            <Input
+              placeholder={saved?.wallet_mpesa ? 'Atual: ' + saved.wallet_mpesa : "Ex: 993627"}
+              value={form.wallet_mpesa}
+              onChange={e => setForm(f => ({ ...f, wallet_mpesa: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label>Wallet ID (e-Mola)</Label>
+            <Input
+               placeholder={saved?.wallet_emola ? 'Atual: ' + saved.wallet_emola : "Ex: 993626"}
+              value={form.wallet_emola}
+              onChange={e => setForm(f => ({ ...f, wallet_emola: e.target.value }))}
+            />
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+          <div>
+            <Label className="text-sm font-medium">Modo de Produção (Live)</Label>
+            <p className="text-xs text-muted-foreground">Aplica-se às chamadas da API.</p>
+          </div>
+          <Switch checked={form.is_live} onCheckedChange={v => setForm(f => ({ ...f, is_live: v }))} />
+        </div>
+
+        <div className="rounded-lg bg-muted/50 border border-border p-3 space-y-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">URL do Webhook (E2Payments)</p>
+          <code className="text-xs text-primary break-all">{window.location.origin}/api/webhooks/e2payments</code>
+        </div>
+
+        <Button
+          className="w-full gap-2 h-11 font-semibold"
+          onClick={handleSave}
+          disabled={isSaving || (!form.client_id && !form.client_secret && !form.wallet_mpesa && !form.wallet_emola)}
+        >
+          {isSaving ? <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</> : <><CheckCircle className="h-4 w-4" /> Salvar</>}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Platform Favicon Settings ────────────────────────────────────────────────
 function FaviconSettings() {
   const { toast } = useToast();
@@ -437,9 +604,9 @@ function GeneralSettings() {
 
   const updateSetting = async (key: string, value: number | boolean) => {
     try {
-      if (key === 'maintenance_mode') setMaintenanceMode(value);
-      if (key === 'ip_country_detect') setIpDetect(value);
-      if (key === 'platform_fee') setPlatformFee(value);
+      if (key === 'maintenance_mode' && typeof value === 'boolean') setMaintenanceMode(value);
+      if (key === 'ip_country_detect' && typeof value === 'boolean') setIpDetect(value);
+      if (key === 'platform_fee' && typeof value === 'number') setPlatformFee(value);
 
       const res = await fetch('/api/platform/settings', {
         method: 'PUT',
@@ -580,6 +747,7 @@ export default function SettingsPage() {
 
       {/* Paystack — first and most important */}
       <PaystackSettings />
+      <E2PaymentsSettings />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
