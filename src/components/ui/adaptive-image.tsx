@@ -7,9 +7,10 @@ interface AdaptiveImageProps {
     src?: string | null;
     alt: string;
     className?: string; // Additional classes for the wrapper if needed
+    priority?: boolean;
 }
 
-export function AdaptiveImage({ src, alt, className }: AdaptiveImageProps) {
+export function AdaptiveImage({ src, alt, className, priority = false }: AdaptiveImageProps) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [hasError, setHasError] = useState(false);
 
@@ -31,7 +32,9 @@ export function AdaptiveImage({ src, alt, className }: AdaptiveImageProps) {
             <img
                 src={src}
                 alt={alt}
-                loading="lazy"
+                loading={priority ? "eager" : "lazy"}
+                // @ts-ignore - fetchpriority is a valid attribute in modern browsers
+                fetchpriority={priority ? "high" : "auto"}
                 decoding="async"
                 onLoad={() => setIsLoaded(true)}
                 onError={() => setHasError(true)}

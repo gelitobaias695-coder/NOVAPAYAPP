@@ -1,13 +1,28 @@
 import * as productService from '../services/productService.js';
 import pool from '../db/pool.js';
 
-// Helper: convert file buffer to base64 data URL and store in DB column
-async function saveImageToDb(productId, files, fieldName, column) {
+import { uploadBuffer } from '../services/cloudinaryService.js';
+
+// Helper: upload to Cloudinary or falls back to data URI (base64)
+async function saveImageToDb(productId, files, fieldName) {
     const file = files?.[fieldName]?.[0];
     if (!file || !file.buffer) return null;
+
+    // Try Cloudinary first
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+        try {
+            console.log(`[Images] Uploading ${fieldName} to Cloudinary...`);
+            const url = await uploadBuffer(file.buffer, 'novapay/products');
+            return url;
+        } catch (err) {
+            console.error(`[Images] Cloudinary upload failed for ${fieldName}:`, err.message);
+            // Fallback to base64 ONLY if Cloudinary fails but we really need to save something
+        }
+    }
+
+    // Fallback/Default: base64 (Note: this is what was causing performance issues)
     const base64 = file.buffer.toString('base64');
-    const dataUrl = `data:${file.mimetype};base64,${base64}`;
-    return dataUrl;
+    return `data:${file.mimetype};base64,${base64}`;
 }
 
 export async function getProducts(req, res, next) {
@@ -130,6 +145,33 @@ export async function syncProductBumps(req, res, next) {
         const bumps = Array.isArray(req.body.bumps) ? req.body.bumps : [];
         const result = await productService.syncProductBumps(req.params.id, bumps);
         res.json({ data: result, total: result.length, message: `${result.length} bump(s) sincronizado(s) com sucesso.` });
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function getCheckoutData(req, res, next) {
+    try {
+        const productId = req.params.id;
+        
+        // Fetch all data in parallel on the server (low latency connection to DB)
+        const [product, bumps, funnel, platformResult, pixelResult] = await Promise.all([
+            productService.getProductById(productId),
+            productService.getProductBumps(productId).catch(() => []),
+            pool.query('SELECT * FROM funnels WHERE main_product_id = $1 LIMIT 1', [productId]).then(r => r.rows[0] || null).catch(() => null),
+            pool.query('SELECT favicon_url, logo_url, primary_color FROM platform_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null),
+            pool.query('SELECT pixel_id FROM pixel_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null)
+        ]);
+
+        res.json({
+            data: {
+                product,
+                bumps,
+                funnel,
+                settings: platformResult,
+                pixel: pixelResult
+            }
+        });
     } catch (err) {
         next(err);
     }

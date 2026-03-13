@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
 
-export default function MetaPixel() {
-    const [pixelId, setPixelId] = useState<string | null>(null);
+interface MetaPixelProps {
+    directId?: string | null;
+}
+
+export default function MetaPixel({ directId }: MetaPixelProps) {
+    const [pixelId, setPixelId] = useState<string | null>(directId || null);
 
     useEffect(() => {
+        if (directId) {
+            setPixelId(directId);
+            return;
+        }
         const fetchPixel = async () => {
             try {
                 const res = await fetch("/api/pixel/settings");
@@ -18,7 +26,7 @@ export default function MetaPixel() {
             }
         };
         fetchPixel();
-    }, []);
+    }, [directId]);
 
     useEffect(() => {
         if (!pixelId) return;

@@ -426,7 +426,7 @@ export default function CheckoutPhysical({ product }: Props) {
                              <div className="flex gap-4 items-center">
                                 <div className="relative">
                                     <div className="w-16 h-16 rounded-md border border-gray-200 overflow-hidden bg-white">
-                                        <AdaptiveImage src={product.product_image_url} alt={product.name} />
+                                        <AdaptiveImage src={product.product_image_url} alt={product.name} priority={true} />
                                     </div>
                                     <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">1</span>
                                 </div>
@@ -783,7 +783,7 @@ export default function CheckoutPhysical({ product }: Props) {
                             <div className="flex items-center gap-4 group">
                                 <div className="relative">
                                     <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm ring-1 ring-black/5">
-                                        <AdaptiveImage src={product.product_image_url} alt={product.name} />
+                                        <AdaptiveImage src={product.product_image_url} alt={product.name} priority={true} />
                                     </div>
                                     <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[10px] border border-white/20 w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-md">1</span>
                                 </div>

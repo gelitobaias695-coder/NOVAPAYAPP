@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
+// ... (existing interfaces CreateProductInput and DBProduct)
 export interface DBProduct {
     id: string;
     name: string;
@@ -23,6 +25,7 @@ export interface DBProduct {
 }
 
 export interface CreateProductInput {
+    // ... same as before
     name: string;
     description?: string;
     price: number;
@@ -41,17 +44,10 @@ export interface CreateProductInput {
     standard_shipping_price?: number;
 }
 
-interface UseProductsReturn {
-    products: DBProduct[];
-    isLoading: boolean;
-    error: string | null;
-    addProduct: (input: CreateProductInput) => Promise<DBProduct>;
-    updateProduct: (id: string, input: CreateProductInput) => Promise<DBProduct>;
-    deleteProduct: (id: string) => Promise<void>;
-    refetch: () => void;
-}
+// ... useProducts (keeping it same for now to avoid breaking admin)
 
 export function useProducts(): UseProductsReturn {
+    // Keep existing implementation for admin to avoid side effects
     const [products, setProducts] = useState<DBProduct[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -110,14 +106,12 @@ export function useProducts(): UseProductsReturn {
     const updateProduct = useCallback(async (id: string, input: CreateProductInput): Promise<DBProduct> => {
         const formData = new FormData();
         formData.append('name', input.name);
-        // Always append description (even empty string) to avoid losing the value on update
         formData.append('description', input.description ?? '');
         formData.append('price', input.price.toString());
         formData.append('currency', input.currency);
         formData.append('status', input.status);
         formData.append('type', input.type);
         formData.append('primary_color', input.primary_color ?? '#10B981');
-        // Always send require_whatsapp as explicit boolean string
         formData.append('require_whatsapp', String(input.require_whatsapp ?? false));
         formData.append('checkout_language', input.checkout_language ?? 'pt');
         if (input.logo_image) formData.append('logo_image', input.logo_image);
@@ -156,24 +150,44 @@ export function useProducts(): UseProductsReturn {
     return { products, isLoading, error, addProduct, updateProduct, deleteProduct, refetch: fetchProducts };
 }
 
+interface UseProductsReturn {
+    products: DBProduct[];
+    isLoading: boolean;
+    error: string | null;
+    addProduct: (input: CreateProductInput) => Promise<DBProduct>;
+    updateProduct: (id: string, input: CreateProductInput) => Promise<DBProduct>;
+    deleteProduct: (id: string) => Promise<void>;
+    refetch: () => void;
+}
+
 export function useProduct(id: string | undefined) {
-    const [product, setProduct] = useState<DBProduct | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const query = useQuery({
+        queryKey: ['product', id],
+        queryFn: async () => {
+            if (!id) throw new Error("ID is required");
+            const res = await fetch(`/api/products/${id}`);
+            if (!res.ok) throw new Error(res.status === 404 ? 'Produto não encontrado.' : `HTTP ${res.status}`);
+            const json = await res.json();
+            return json.data as DBProduct;
+        },
+        enabled: !!id,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 
-    useEffect(() => {
-        if (!id) return;
-        setIsLoading(true);
-        setError(null);
-        fetch(`/api/products/${id}`)
-            .then(async (res) => {
-                if (!res.ok) throw new Error(res.status === 404 ? 'Produto não encontrado.' : `HTTP ${res.status}`);
-                const json = await res.json();
-                setProduct(json.data);
-            })
-            .catch((err) => setError(err.message))
-            .finally(() => setIsLoading(false));
-    }, [id]);
+    return { product: query.data, isLoading: query.isLoading, error: query.error };
+}
 
-    return { product, isLoading, error };
+export function useCheckoutInit(id: string | undefined) {
+    return useQuery({
+        queryKey: ['checkout-init', id],
+        queryFn: async () => {
+            if (!id) throw new Error("ID is required");
+            const res = await fetch(`/api/products/${id}/checkout-init`);
+            if (!res.ok) throw new Error(res.status === 404 ? 'Checkout não encontrado.' : `HTTP ${res.status}`);
+            const json = await res.json();
+            return json.data;
+        },
+        enabled: !!id,
+        staleTime: 5 * 60 * 1000,
+    });
 }

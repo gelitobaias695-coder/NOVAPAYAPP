@@ -2,7 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import {
     getProducts, getProductById, addProduct, updateProduct, deleteProduct,
-    getProductBumps, addProductBump, removeProductBump, syncProductBumps
+    getProductBumps, addProductBump, removeProductBump, syncProductBumps,
+    getCheckoutData
 } from '../controllers/productController.js';
 
 // Use memory storage — files go to Cloudinary, NOT to disk
@@ -15,6 +16,7 @@ const upload = multer({
 const router = Router();
 
 router.get('/', getProducts);
+router.get('/:id/checkout-init', getCheckoutData);
 router.get('/:id/bumps', getProductBumps);
 router.post('/:id/bumps', addProductBump);
 router.put('/:id/bumps/sync', syncProductBumps);

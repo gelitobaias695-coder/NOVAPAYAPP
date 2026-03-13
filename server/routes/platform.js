@@ -26,6 +26,7 @@ router.get('/settings', async (req, res, next) => {
             FROM platform_settings 
             LIMIT 1
         `);
+        res.setHeader('Cache-Control', 'public, max-age=3600');
         res.json({ data: result.rows[0] });
     } catch (err) {
         next(err);

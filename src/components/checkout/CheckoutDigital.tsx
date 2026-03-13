@@ -241,7 +241,7 @@ export default function CheckoutDigital({ product }: Props) {
                     className={`overflow-hidden transition-all duration-300 ease-in-out ${isSummaryOpen ? 'max-h-[600px] border-t border-border opacity-100' : 'max-h-0 opacity-0'}`}
                 >
                     <div className="p-4 space-y-4">
-                        <AdaptiveImage src={product.product_image_url} alt={product.name} />
+                        <AdaptiveImage src={product.product_image_url} alt={product.name} priority={true} />
                         <div>
                             <p className="font-semibold">{product.name}</p>
                             {product.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{product.description}</p>}
@@ -485,7 +485,7 @@ export default function CheckoutDigital({ product }: Props) {
                 <div className="hidden lg:block lg:col-span-2">
                     <div className="bg-white rounded-xl border border-border p-5 sticky top-20 shadow-sm space-y-5">
                         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">{t.orderSummary}</h3>
-                        <AdaptiveImage src={product.product_image_url} alt={product.name} />
+                        <AdaptiveImage src={product.product_image_url} alt={product.name} priority={true} />
                         <div>
                             <p className="font-semibold">{product.name}</p>
                             {product.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{product.description}</p>}
