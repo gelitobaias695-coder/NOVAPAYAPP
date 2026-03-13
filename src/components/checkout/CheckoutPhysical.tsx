@@ -776,16 +776,16 @@ export default function CheckoutPhysical({ product, initFunnel, initBumps, initR
                                                         </div>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="relative">
-                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="First name (optional)" defaultValue={form.name.split(' ')[0]} />
+                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="First name (optional)" />
                                                                 <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">First name (optional)</label>
                                                             </div>
                                                             <div className="relative">
-                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Last name" defaultValue={form.name.split(' ').slice(1).join(' ')} />
+                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Last name" />
                                                                 <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">Last name</label>
                                                             </div>
                                                         </div>
                                                         <div className="relative">
-                                                            <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Address" defaultValue={form.address} />
+                                                            <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Address" />
                                                             <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">Address</label>
                                                         </div>
                                                         <div className="relative">
@@ -794,18 +794,18 @@ export default function CheckoutPhysical({ product, initFunnel, initBumps, initR
                                                         </div>
                                                         <div className="grid grid-cols-[1fr_1fr_1fr] gap-4">
                                                             <div className="relative">
-                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="City" defaultValue={form.city} />
+                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="City" />
                                                                 <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">City</label>
                                                             </div>
                                                             <div className="relative">
                                                                 <select className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] appearance-none focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none">
-                                                                    <option>{form.state || 'Gauteng'}</option>
+                                                                    <option>Gauteng</option>
                                                                 </select>
                                                                 <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none">Province</label>
                                                                 <ChevronDown className="absolute right-3 top-4 h-4 w-4 text-gray-500 pointer-events-none" />
                                                             </div>
                                                             <div className="relative">
-                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Postal code" defaultValue={form.postal} />
+                                                                <input type="text" className="w-full h-[50px] px-3 pt-5 pb-1 border border-gray-300 rounded-lg bg-white text-[15px] focus:border-[#1773B0] focus:ring-1 focus:ring-[#1773B0] outline-none placeholder-transparent peer" placeholder="Postal code" />
                                                                 <label className="absolute left-3 top-2 text-[12px] text-gray-500 font-medium pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[15px] peer-focus:top-2 peer-focus:text-[12px]">Postal code</label>
                                                             </div>
                                                         </div>
