@@ -10,13 +10,6 @@ import MetaPixel from "@/components/MetaPixel";
 const CheckoutPhysical = lazy(() => import("@/components/checkout/CheckoutPhysical"));
 const CheckoutDigital = lazy(() => import("@/components/checkout/CheckoutDigital"));
 
-function LoadingSkeleton() {
-    return (
-        <div className="min-h-screen bg-[#0a0f18] flex items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
-    );
-}
 
 export default function CheckoutPage() {
     const { id } = useParams<{ id: string }>();
@@ -39,7 +32,7 @@ export default function CheckoutPage() {
     const product = initData?.product;
     const errorMsg = initError ? (initError as Error).message : null;
 
-    if (isLoading) return <LoadingSkeleton />;
+    if (isLoading) return null;
 
     if (initError || !product) {
         return (
@@ -76,7 +69,7 @@ export default function CheckoutPage() {
             {/* Direct injection of Pixel ID skipped 1 API roundtrip */}
             <MetaPixel directId={initData?.pixel?.pixel_id} />
             
-            <Suspense fallback={<LoadingSkeleton />}>
+            <Suspense fallback={null}>
                 {product.type === "digital"
                     ? <CheckoutDigital product={product} />
                     : <CheckoutPhysical product={product} />}
