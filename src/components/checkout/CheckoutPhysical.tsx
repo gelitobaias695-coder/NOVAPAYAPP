@@ -455,17 +455,6 @@ export default function CheckoutPhysical({ product }: Props) {
                             )}
                             <Breadcrumbs step={step} t={t} />
 
-                            {/* Flash Sale Banner / Status */}
-                            <div className="w-full flex items-center justify-between gap-4 p-3 bg-red-50 border border-red-100 rounded-lg mb-8 animate-pulse shadow-sm">
-                                <div className="flex items-center gap-2 text-xs font-semibold text-red-600">
-                                    <Clock className="h-3.5 w-3.5" />
-                                    <span>ORDER RESERVED FOR {formatTime(timeLeft)}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-[10px] font-bold text-red-500">
-                                    <Users className="h-3 w-3" />
-                                    <span>{viewers} PEOPLE VIEWING</span>
-                                </div>
-                            </div>
                         </header>
 
                         <main className="space-y-8">
@@ -749,10 +738,6 @@ export default function CheckoutPhysical({ product }: Props) {
                                     <button className="hover:text-blue-600 transition-colors uppercase tracking-widest">Privacy policy</button>
                                     <button className="hover:text-blue-600 transition-colors uppercase tracking-widest">Terms of service</button>
                                 </nav>
-                                <div className="flex items-center gap-3 opacity-30 grayscale transition-all hover:opacity-100 hover:grayscale-0">
-                                     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Mastercard-logo.svg" alt="Mastercard" className="h-4" />
-                                     <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4" />
-                                </div>
                             </footer>
                         </main>
                     </div>
