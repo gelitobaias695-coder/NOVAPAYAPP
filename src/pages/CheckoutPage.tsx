@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useCheckoutInit } from "@/hooks/useProducts";
+import { useCheckoutInit, useProduct } from "@/hooks/useProducts";
 import { lazy, Suspense, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
@@ -12,13 +12,23 @@ const CheckoutDigital = lazy(() => import("@/components/checkout/CheckoutDigital
 
 
 export default function CheckoutPage() {
-    const { id } = useParams<{ id: string }>();
+    const { id: rawId } = useParams<{ id: string }>();
+    const id = rawId?.trim();
     const queryClient = useQueryClient();
-    const { data: initData, isLoading, error: initError } = useCheckoutInit(id);
     
+    const { data: initData, isLoading: isLoadingInit, error: initError } = useCheckoutInit(id);
+    
+    // Fallback to old behavior if checkout-init is 404 (not deployed yet)
+    const shouldFallback = !isLoadingInit && !initData;
+    const { product: fallbackProduct, isLoading: isLoadingFallback, error: fallbackError } = useProduct(shouldFallback ? id : undefined);
+    
+    const product = initData?.product || fallbackProduct;
+    const isLoading = isLoadingInit || (shouldFallback && isLoadingFallback);
+    const error = initError || (shouldFallback ? fallbackError : null);
+
     // Seed other queries to avoid waterfalls in child components
     useEffect(() => {
-        if (initData) {
+        if (initData && id) {
             if (initData.product) queryClient.setQueryData(['product', id], initData.product);
             if (initData.funnel) queryClient.setQueryData(['funnel', id], initData.funnel);
             if (initData.bumps) queryClient.setQueryData(['bumps', id], initData.bumps);
@@ -29,12 +39,11 @@ export default function CheckoutPage() {
         }
     }, [initData, id, queryClient]);
 
-    const product = initData?.product;
-    const errorMsg = initError ? (initError as Error).message : null;
+    const errorMsg = error ? (error as Error).message : null;
 
     if (isLoading) return null;
 
-    if (initError || !product) {
+    if (!product) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center space-y-4 max-w-sm">

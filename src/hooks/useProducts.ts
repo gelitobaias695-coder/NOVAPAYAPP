@@ -164,8 +164,9 @@ export function useProduct(id: string | undefined) {
     const query = useQuery({
         queryKey: ['product', id],
         queryFn: async () => {
-            if (!id) throw new Error("ID is required");
-            const res = await fetch(`/api/products/${id}`);
+            const cleanId = id?.trim();
+            if (!cleanId) throw new Error("ID is required");
+            const res = await fetch(`/api/products/${cleanId}`);
             if (!res.ok) throw new Error(res.status === 404 ? 'Produto não encontrado.' : `HTTP ${res.status}`);
             const json = await res.json();
             return json.data as DBProduct;
@@ -184,7 +185,10 @@ export function useCheckoutInit(id: string | undefined) {
             const cleanId = id?.trim();
             if (!cleanId) throw new Error("ID is required");
             const res = await fetch(`/api/products/${cleanId}/checkout-init`);
-            if (!res.ok) throw new Error(res.status === 404 ? 'Checkout não encontrado.' : `HTTP ${res.status}`);
+            if (!res.ok) {
+                if (res.status === 404) return null; // Fallback handled in component
+                throw new Error(`HTTP ${res.status}`);
+            }
             const json = await res.json();
             return json.data;
         },
