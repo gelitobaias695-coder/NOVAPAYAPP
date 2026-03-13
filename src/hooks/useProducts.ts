@@ -16,6 +16,8 @@ export interface DBProduct {
     success_url: string | null;
     email_sender_name: string | null;
     email_sender_email: string | null;
+    express_shipping_price: string;
+    standard_shipping_price: string;
     created_at: string;
     updated_at: string;
 }
@@ -35,6 +37,8 @@ export interface CreateProductInput {
     success_url?: string;
     email_sender_name?: string;
     email_sender_email?: string;
+    express_shipping_price?: number;
+    standard_shipping_price?: number;
 }
 
 interface UseProductsReturn {
@@ -86,6 +90,8 @@ export function useProducts(): UseProductsReturn {
         if (input.success_url) formData.append('success_url', input.success_url);
         if (input.email_sender_name) formData.append('email_sender_name', input.email_sender_name);
         if (input.email_sender_email) formData.append('email_sender_email', input.email_sender_email);
+        if (input.express_shipping_price !== undefined) formData.append('express_shipping_price', input.express_shipping_price.toString());
+        if (input.standard_shipping_price !== undefined) formData.append('standard_shipping_price', input.standard_shipping_price.toString());
 
         const res = await fetch('/api/products', {
             method: 'POST',
@@ -119,6 +125,8 @@ export function useProducts(): UseProductsReturn {
         if (input.success_url) formData.append('success_url', input.success_url);
         if (input.email_sender_name) formData.append('email_sender_name', input.email_sender_name);
         if (input.email_sender_email) formData.append('email_sender_email', input.email_sender_email);
+        formData.append('express_shipping_price', (input.express_shipping_price ?? 0).toString());
+        formData.append('standard_shipping_price', (input.standard_shipping_price ?? 0).toString());
 
         const res = await fetch(`/api/products/${id}`, {
             method: 'PUT',

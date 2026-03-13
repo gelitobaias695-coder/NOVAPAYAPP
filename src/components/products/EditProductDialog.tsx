@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useProducts, type CreateProductInput, type DBProduct } from "@/hooks/useProducts";
 import {
     Loader2, Copy, CheckCheck, Package, Zap, ExternalLink,
-    Tag, X, Plus, CheckCircle2, AlertCircle, RefreshCw,
+    Tag, X, Plus, CheckCircle2, AlertCircle, RefreshCw, Truck,
 } from "lucide-react";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -35,6 +35,8 @@ const productSchema = z.object({
     success_url: z.string().url("URL inválida").optional().or(z.literal('')),
     email_sender_name: z.string().max(255).optional().or(z.literal('')),
     email_sender_email: z.string().email("E-mail inválido").optional().or(z.literal('')),
+    express_shipping_price: z.coerce.number().min(0).optional().default(0),
+    standard_shipping_price: z.coerce.number().min(0).optional().default(0),
 });
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -182,6 +184,7 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
             primary_color: "#10B981", require_whatsapp: false,
             checkout_language: "pt", success_url: "",
             email_sender_name: "", email_sender_email: "",
+            express_shipping_price: 0, standard_shipping_price: 0,
         },
     });
 
@@ -201,6 +204,8 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                 success_url: product.success_url || "",
                 email_sender_name: product.email_sender_name || "",
                 email_sender_email: product.email_sender_email || "",
+                express_shipping_price: parseFloat(product.express_shipping_price) || 0,
+                standard_shipping_price: parseFloat(product.standard_shipping_price) || 0,
             });
             setIsRedirectEnabled(!!product.success_url);
         }
@@ -311,6 +316,8 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                 success_url: isRedirectEnabled ? values.success_url : undefined,
                 email_sender_name: values.email_sender_name || undefined,
                 email_sender_email: values.email_sender_email || undefined,
+                express_shipping_price: values.express_shipping_price,
+                standard_shipping_price: values.standard_shipping_price,
             });
 
             // 2. Sync Order Bumps atomically via PUT /api/products/:id/bumps/sync
@@ -601,6 +608,45 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                                 </div>
                             )}
                         </div>
+
+                        {/* Shipping Methods (physical only) */}
+                        {type === "physical" && (
+                            <div className="rounded-lg border border-border p-4 space-y-4 bg-muted/20">
+                                <p className="text-sm font-bold flex items-center gap-2">
+                                    <Truck className="h-4 w-4 text-primary" /> Shipping method
+                                </p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Express Shipping</Label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">{currency}</span>
+                                            <Input 
+                                                type="number" 
+                                                step="0.01" 
+                                                min="0" 
+                                                placeholder="0.00"
+                                                className="pl-12"
+                                                {...register("express_shipping_price")} 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Standard Shipping</Label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">{currency}</span>
+                                            <Input 
+                                                type="number" 
+                                                step="0.01" 
+                                                min="0" 
+                                                placeholder="0.00"
+                                                className="pl-12"
+                                                {...register("standard_shipping_price")} 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* ─── Order Bumps Section ───────────────────────────── */}
                         <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-4 space-y-4">

@@ -15,7 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
-    Loader2, Plus, Copy, CheckCheck, Package, Zap, ExternalLink,
+    Loader2, Plus, Copy, CheckCheck, Package, Zap, ExternalLink, Truck,
 } from "lucide-react";
 import { type CreateProductInput, type DBProduct } from "@/hooks/useProducts";
 
@@ -32,6 +32,8 @@ const productSchema = z.object({
     success_url: z.string().url("URL inválida").optional().or(z.literal('')),
     email_sender_name: z.string().max(255).optional().or(z.literal('')),
     email_sender_email: z.string().email("E-mail inválido").optional().or(z.literal('')),
+    express_shipping_price: z.coerce.number().min(0).optional().default(0),
+    standard_shipping_price: z.coerce.number().min(0).optional().default(0),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -66,6 +68,8 @@ export default function AddProductDialog({ onProductAdded }: AddProductDialogPro
             primary_color: "#10B981",
             require_whatsapp: false,
             checkout_language: "pt",
+            express_shipping_price: 0,
+            standard_shipping_price: 67,
         },
     });
 
@@ -105,6 +109,8 @@ export default function AddProductDialog({ onProductAdded }: AddProductDialogPro
                 success_url: isRedirectEnabled ? values.success_url : undefined,
                 email_sender_name: values.email_sender_name || undefined,
                 email_sender_email: values.email_sender_email || undefined,
+                express_shipping_price: values.express_shipping_price,
+                standard_shipping_price: values.standard_shipping_price,
             });
             setCreatedProduct(product);
             toast({ title: "Produto criado!", description: `"${values.name}" foi salvo com sucesso.` });
@@ -346,6 +352,45 @@ export default function AddProductDialog({ onProductAdded }: AddProductDialogPro
                                 </div>
                             )}
                         </div>
+                        
+                        {/* Shipping Methods (physical only) */}
+                        {type === "physical" && (
+                            <div className="rounded-lg border border-border p-4 space-y-4 bg-muted/20">
+                                <p className="text-sm font-bold flex items-center gap-2">
+                                    <Truck className="h-4 w-4 text-primary" /> Shipping method
+                                </p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Express Shipping</Label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">{currency}</span>
+                                            <Input 
+                                                type="number" 
+                                                step="0.01" 
+                                                min="0" 
+                                                placeholder="0.00"
+                                                className="pl-12"
+                                                {...register("express_shipping_price")} 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Standard Shipping</Label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">{currency}</span>
+                                            <Input 
+                                                type="number" 
+                                                step="0.01" 
+                                                min="0" 
+                                                placeholder="0.00"
+                                                className="pl-12"
+                                                {...register("standard_shipping_price")} 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <DialogFooter className="pt-2">
                             <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>

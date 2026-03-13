@@ -33,6 +33,8 @@ export async function addProduct(req, res, next) {
         const input = {
             ...req.body,
             price: parseFloat(req.body.price),
+            express_shipping_price: parseFloat(req.body.express_shipping_price || 0),
+            standard_shipping_price: parseFloat(req.body.standard_shipping_price || 0),
             require_whatsapp: req.body.require_whatsapp === true || req.body.require_whatsapp === 'true',
         };
 
@@ -61,6 +63,8 @@ export async function updateProduct(req, res, next) {
         const input = {
             ...req.body,
             price: parseFloat(req.body.price),
+            express_shipping_price: parseFloat(req.body.express_shipping_price || 0),
+            standard_shipping_price: parseFloat(req.body.standard_shipping_price || 0),
             require_whatsapp: req.body.require_whatsapp === true || req.body.require_whatsapp === 'true',
         };
 

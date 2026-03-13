@@ -148,7 +148,9 @@ export default function CheckoutPhysical({ product }: Props) {
     const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
     const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('express');
     const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
-    const shippingPrice = shippingMethod === 'standard' ? 67 : 0;
+    const shippingPrice = shippingMethod === 'express' 
+        ? (parseFloat(product.express_shipping_price) || 0) 
+        : (parseFloat(product.standard_shipping_price) || 0);
     const totalPrice = basePrice + bumpExtraTotal + shippingPrice;
 
     // Persistence
@@ -627,31 +629,35 @@ export default function CheckoutPhysical({ product }: Props) {
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-4">
                                         <h2 className="text-xl font-bold text-gray-900 tracking-tight">Shipping method</h2>
-                                        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-                                            <label 
-                                                className={`flex items-center justify-between p-5 cursor-pointer transition-all border-2 ${shippingMethod === 'express' ? 'border-blue-600 bg-blue-50/20' : 'border-transparent hover:bg-gray-50'}`}
+                                        <div className="border border-gray-200 rounded-lg bg-white overflow-hidden">
+                                            <div 
+                                                className={`flex items-center justify-between p-5 cursor-pointer transition-all border-2 ${shippingMethod === 'express' ? 'border-blue-600 bg-blue-50/20 z-10 relative' : 'border-transparent hover:bg-gray-50'}`}
                                                 onClick={() => setShippingMethod('express')}
                                             >
                                                 <div className="flex items-center gap-3.5">
-                                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${shippingMethod === 'express' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+                                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${shippingMethod === 'express' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
                                                         {shippingMethod === 'express' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                                     </div>
-                                                    <span className="text-[15px] font-medium text-gray-900">{t.expressShipping}</span>
+                                                    <span className="text-[15px] font-medium text-gray-900">Express Shipping</span>
                                                 </div>
-                                                <span className="text-sm font-bold text-gray-900 uppercase">FREE</span>
-                                            </label>
-                                            <label 
-                                                className={`flex items-center justify-between p-5 cursor-pointer transition-all border-2 border-t border-t-gray-100 ${shippingMethod === 'standard' ? 'border-blue-600 bg-blue-50/20' : 'border-transparent hover:bg-gray-50'}`}
+                                                <span className="text-sm font-bold text-gray-900 uppercase">
+                                                    {parseFloat(product.express_shipping_price) > 0 ? format(parseFloat(product.express_shipping_price)) : 'FREE'}
+                                                </span>
+                                            </div>
+                                            <div 
+                                                className={`flex items-center justify-between p-5 cursor-pointer transition-all border-2 border-t border-t-gray-100 ${shippingMethod === 'standard' ? 'border-blue-600 bg-blue-50/20 z-10 relative' : 'border-transparent hover:bg-gray-50'}`}
                                                 onClick={() => setShippingMethod('standard')}
                                             >
                                                 <div className="flex items-center gap-3.5">
-                                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${shippingMethod === 'standard' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+                                                    <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${shippingMethod === 'standard' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
                                                         {shippingMethod === 'standard' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                                     </div>
-                                                    <span className="text-[15px] font-medium text-gray-900">{t.standardShipping}</span>
+                                                    <span className="text-[15px] font-medium text-gray-900">Standard Shipping</span>
                                                 </div>
-                                                <span className="text-[15px] font-bold text-gray-900">R 67,00</span>
-                                            </label>
+                                                <span className="text-[15px] font-bold text-gray-900">
+                                                    {parseFloat(product.standard_shipping_price) > 0 ? format(parseFloat(product.standard_shipping_price)) : 'FREE'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 

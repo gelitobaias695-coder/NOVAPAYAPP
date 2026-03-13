@@ -26,6 +26,8 @@ export const CreateProductSchema = z.object({
     email_sender_name: z.string().max(255).optional().or(z.literal('')),
     email_sender_email: z.string().email('Invalid sender email format').optional().or(z.literal('')),
     is_live: z.boolean().optional(),
+    express_shipping_price: z.number().nonnegative().optional().default(0),
+    standard_shipping_price: z.number().nonnegative().optional().default(0),
 });
 
 export async function listProducts() {

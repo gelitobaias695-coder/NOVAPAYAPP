@@ -4,7 +4,8 @@ import { getIsLiveMode } from '../services/gatewaySettingsService.js';
 const COLUMNS = `
   id, name, description, price, currency, status,
   type, logo_url, product_image_url, primary_color, require_whatsapp,
-  checkout_language, is_bump, success_url, email_sender_name, email_sender_email, is_live, created_at, updated_at
+  checkout_language, is_bump, success_url, email_sender_name, email_sender_email, is_live,
+  express_shipping_price, standard_shipping_price, created_at, updated_at
 `;
 
 /**
@@ -40,13 +41,13 @@ export async function create(data) {
         name, description, price, currency, status,
         type, logo_url, product_image_url, primary_color, require_whatsapp,
         checkout_language, success_url, email_sender_name, email_sender_email,
-        is_live
+        is_live, express_shipping_price, standard_shipping_price
     } = data;
 
     const result = await pool.query(
         `INSERT INTO products
-       (name, description, price, currency, status, type, logo_url, product_image_url, primary_color, require_whatsapp, checkout_language, success_url, email_sender_name, email_sender_email, is_live)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+       (name, description, price, currency, status, type, logo_url, product_image_url, primary_color, require_whatsapp, checkout_language, success_url, email_sender_name, email_sender_email, is_live, express_shipping_price, standard_shipping_price)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
      RETURNING ${COLUMNS}`,
         [
             name,
@@ -63,7 +64,9 @@ export async function create(data) {
             success_url ?? null,
             email_sender_name ?? null,
             email_sender_email ?? null,
-            is_live ?? true
+            is_live ?? true,
+            express_shipping_price ?? 0.00,
+            standard_shipping_price ?? 0.00
         ]
     );
     return result.rows[0];
@@ -78,7 +81,8 @@ export async function update(id, data) {
     const {
         name, description, price, currency, status,
         type, logo_url, product_image_url, primary_color, require_whatsapp,
-        checkout_language, success_url, email_sender_name, email_sender_email
+        checkout_language, success_url, email_sender_name, email_sender_email,
+        express_shipping_price, standard_shipping_price
     } = data;
 
     // Build dynamic update query to handle optional image fields
@@ -96,11 +100,14 @@ export async function update(id, data) {
         success_url = $10,
         email_sender_name = $11,
         email_sender_email = $12,
+        express_shipping_price = $13,
+        standard_shipping_price = $14,
         updated_at = NOW()
     `;
     const params = [
         name, description ?? null, price, currency, status,
-        type ?? 'physical', primary_color ?? '#10B981', require_whatsapp ?? false, checkout_language ?? 'pt', success_url ?? null, email_sender_name ?? null, email_sender_email ?? null
+        type ?? 'physical', primary_color ?? '#10B981', require_whatsapp ?? false, checkout_language ?? 'pt', success_url ?? null, email_sender_name ?? null, email_sender_email ?? null,
+        express_shipping_price ?? 0.00, standard_shipping_price ?? 0.00
     ];
     let paramCount = params.length;
 
