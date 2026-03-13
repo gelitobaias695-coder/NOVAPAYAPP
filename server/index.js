@@ -119,6 +119,7 @@ if (pool) {
     ALTER TABLE products ADD COLUMN IF NOT EXISTS standard_shipping_price DECIMAL(12,2) DEFAULT 0.00;
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT true;
     ALTER TABLE funnels ADD COLUMN IF NOT EXISTS is_live BOOLEAN NOT NULL DEFAULT true;
+    ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS primary_color VARCHAR(50) DEFAULT '#10B981';
   `).then(() => console.log('[DB] Base columns ensured'))
     .catch(e => console.error('[DB] Error auto-migrating base columns:', e.message));
 }

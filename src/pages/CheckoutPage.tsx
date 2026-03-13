@@ -41,12 +41,12 @@ export default function CheckoutPage() {
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 mx-auto">
                         <AlertCircle className="h-8 w-8 text-destructive" />
                     </div>
-                    <h1 className="text-xl font-bold">Produto não encontrado</h1>
+                    <h1 className="text-xl font-bold">Checkout não encontrado</h1>
                     <p className="text-muted-foreground text-sm">
-                        {errorMsg ?? "Este link de checkout não existe ou foi removido."}
+                        {errorMsg && errorMsg !== "Checkout não encontrado." ? errorMsg : "O link que você acessou está incorreto ou o produto foi removido."}
                     </p>
-                    <Button asChild variant="outline" className="gap-2">
-                        <Link to="/"><ArrowLeft className="h-4 w-4" /> Voltar ao início</Link>
+                    <Button asChild variant="default" className="w-full h-11">
+                        <Link to="/admin/products">Voltar para Meus Produtos</Link>
                     </Button>
                 </div>
             </div>

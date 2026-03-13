@@ -152,14 +152,15 @@ export async function syncProductBumps(req, res, next) {
 
 export async function getCheckoutData(req, res, next) {
     try {
-        const productId = req.params.id;
+        const productId = req.params.id?.trim();
+        if (!productId) return res.status(400).json({ error: 'ID do produto é obrigatório' });
         
         // Fetch all data in parallel on the server (low latency connection to DB)
         const [product, bumps, funnel, platformResult, pixelResult] = await Promise.all([
             productService.getProductById(productId),
             productService.getProductBumps(productId).catch(() => []),
             pool.query('SELECT * FROM funnels WHERE main_product_id = $1 LIMIT 1', [productId]).then(r => r.rows[0] || null).catch(() => null),
-            pool.query('SELECT favicon_url, logo_url, primary_color FROM platform_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null),
+            pool.query('SELECT favicon_url, logo_url FROM platform_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null),
             pool.query('SELECT pixel_id FROM pixel_settings LIMIT 1').then(r => r.rows[0] || null).catch(() => null)
         ]);
 
