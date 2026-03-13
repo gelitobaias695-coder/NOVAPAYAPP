@@ -76,8 +76,8 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPassword />} />
 
                   {/* New DB-backed checkout — matches product UUID */}
-                  <Route path="/checkout/:id" element={<CheckoutPage />} />
                   <Route path="/checkout/sucesso" element={<SuccessPage />} />
+                  <Route path="/checkout/:id" element={<CheckoutPage />} />
                   {/* Legacy mock checkout kept for backward-compat */}
                   <Route path="/checkout/t/:slug" element={<Checkout />} />
                   <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />

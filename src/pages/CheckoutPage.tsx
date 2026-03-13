@@ -12,32 +12,8 @@ const CheckoutDigital = lazy(() => import("@/components/checkout/CheckoutDigital
 
 function LoadingSkeleton() {
     return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
-            <div className="relative mb-8">
-                {/* Outer glowing ring */}
-                <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl animate-pulse" />
-                {/* The "bola a girar" (Spinning Ball) */}
-                <Loader2 className="h-16 w-16 animate-spin text-primary relative z-10" />
-            </div>
-            
-            <div className="text-center space-y-2 animate-pulse">
-                <h2 className="text-xl font-semibold text-gray-900">Iniciando Checkout Seguro</h2>
-                <p className="text-sm text-muted-foreground">Preparando sua experiência de compra...</p>
-            </div>
-
-            {/* Subtle skeleton structure in the background to maintain layout stability */}
-            <div className="mt-12 w-full max-w-4xl opacity-20 pointer-events-none hidden md:block">
-                <div className="grid grid-cols-5 gap-8">
-                    <div className="col-span-3 space-y-4">
-                        <Skeleton className="h-8 w-3/4" />
-                        <Skeleton className="h-40 w-full rounded-xl" />
-                        <Skeleton className="h-12 w-full rounded-lg" />
-                    </div>
-                    <div className="col-span-2">
-                        <Skeleton className="h-64 w-full rounded-xl" />
-                    </div>
-                </div>
-            </div>
+        <div className="min-h-screen bg-[#0a0f18] flex items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
     );
 }
