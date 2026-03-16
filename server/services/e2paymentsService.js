@@ -46,14 +46,19 @@ async function getAccessToken(client_id, client_secret) {
         return cachedToken;
     }
 
-    const form = new FormData();
-    form.append('grant_type', 'client_credentials');
-    form.append('client_id', client_id);
-    form.append('client_secret', client_secret);
+    const bodyData = {
+        client_id: client_id,
+        client_secret: client_secret,
+        grant_type: 'client_credentials'
+    };
 
     const resToken = await fetch('https://e2payments.explicador.co.mz/oauth/token', {
         method: 'POST',
-        body: form
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(bodyData)
     });
 
     if (!resToken.ok) {
@@ -93,19 +98,21 @@ export async function initializePayment({ order_id, phone, network, amount }) {
         throw new Error(`Wallet ID for ${network} not configured in settings.`);
     }
 
-    const form = new FormData();
-    form.append('client_id', settings.client_id);
-    form.append('amount', amount.toString());
-    form.append('reference', order_id);
-    form.append('phone', phone);
+    const bodyData = {
+        phone: phone.toString(),
+        amount: amount.toString(),
+        reference: order_id.toString().replace(/-/g, '').substring(0, 27),
+        client_id: settings.client_id
+    };
 
     const resTransaction = await fetch(endpoint, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'X-Requested-With': 'XMLHttpRequest'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
-        body: form
+        body: JSON.stringify(bodyData)
     });
 
     if (!resTransaction.ok) {
@@ -143,8 +150,8 @@ export async function handleWebhook(body) {
                  payment_method = 'e2payments', 
                  gateway_transaction_id = $1, 
                  updated_at = NOW() 
-             WHERE id = $2 AND status != 'paid'`,
-            [body.transaction_id || null, reference]
+             WHERE REPLACE(id::text, '-', '') LIKE $2 AND status != 'paid'`,
+            [body.transaction_id || null, `${reference}%`]
         );
     }
 }
