@@ -101,7 +101,7 @@ export async function initializePayment({ order_id, phone, network, amount }) {
     const bodyData = {
         phone: phone.toString(),
         amount: amount.toString(),
-        reference: order_id.toString().replace(/-/g, '').substring(0, 27),
+        reference: order_id.toString().replace(/-/g, '').substring(0, 10),
         client_id: settings.client_id
     };
 
@@ -150,8 +150,8 @@ export async function handleWebhook(body) {
                  payment_method = 'e2payments', 
                  gateway_transaction_id = $1, 
                  updated_at = NOW() 
-             WHERE REPLACE(id::text, '-', '') LIKE $2 AND status != 'paid'`,
-            [body.transaction_id || null, `${reference}%`]
+             WHERE $2 LIKE '%' || substring(REPLACE(id::text, '-', ''), 1, 10) || '%' AND status != 'paid'`,
+            [body.transaction_id || null, reference]
         );
     }
 }
