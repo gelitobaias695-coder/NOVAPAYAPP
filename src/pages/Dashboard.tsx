@@ -126,49 +126,66 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <MetricCard
-          title="Receita Total"
-          value={formatPrice(convertPrice(stats.revenueZAR))}
-          change="Soma bruta dos pedidos pagos"
-          changeType="positive"
-          icon={<DollarSign className="h-5 w-5" />}
-        />
-        <MetricCard
-          title="Ticket Médio"
-          value={formatPrice(convertPrice(stats.averageTicketNet))}
-          change={`Líquido (Pós-taxa de ${stats.platformFee.toFixed(1)}%)`}
-          changeType="neutral"
-          icon={<DollarSign className="h-5 w-5" />}
-        />
-        <MetricCard
-          title="Total de Pedidos"
-          value={stats.totalOrders.toString()}
-          change="Todos os checkouts criados"
-          changeType="neutral"
-          icon={<ShoppingCart className="h-5 w-5" />}
-        />
-        <MetricCard
-          title="Pedidos Pagos"
-          value={stats.approvedOrders.toString()}
-          change="Pedidos aprovados com sucesso"
-          changeType="positive"
-          icon={<TrendingUp className="h-5 w-5" />}
-        />
-        <MetricCard
-          title="Conversão"
-          value={`${stats.conversionRate.toFixed(1)}%`}
-          change="De todos os checkouts"
-          changeType={stats.conversionRate > 0 ? "positive" : "neutral"}
-          icon={<TrendingUp className="h-5 w-5" />}
-        />
-        <MetricCard
-          title="Cancelados"
-          value={(stats.totalOrders - stats.approvedOrders).toString()}
-          change="Pedidos não processados"
-          changeType="negative"
-          icon={<Users className="h-5 w-5" />}
-        />
+      <div className="space-y-8">
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Desempenho Financeiro</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <MetricCard
+              title="Receita Total"
+              value={formatPrice(convertPrice(stats.revenueZAR))}
+              change="Soma bruta dos pedidos pagos"
+              changeType="positive"
+              icon={<DollarSign className="h-5 w-5" />}
+            />
+            <MetricCard
+              title="Ticket Médio"
+              value={formatPrice(convertPrice(stats.averageTicketNet))}
+              change={`Líquido (Pós-taxa de ${stats.platformFee.toFixed(1)}%)`}
+              changeType="neutral"
+              icon={<DollarSign className="h-5 w-5" />}
+            />
+            <MetricCard
+              title="Conversão"
+              value={`${stats.conversionRate.toFixed(1)}%`}
+              change="De todos os checkouts"
+              changeType={stats.conversionRate > 0 ? "positive" : "neutral"}
+              icon={<TrendingUp className="h-5 w-5" />}
+            />
+          </div>
+        </section>
+
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <ShoppingCart className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Operação e Pedidos</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <MetricCard
+              title="Total de Pedidos"
+              value={stats.totalOrders.toString()}
+              change="Todos os checkouts criados"
+              changeType="neutral"
+              icon={<ShoppingCart className="h-5 w-5" />}
+            />
+            <MetricCard
+              title="Pedidos Pagos"
+              value={stats.approvedOrders.toString()}
+              change="Pedidos aprovados com sucesso"
+              changeType="positive"
+              icon={<TrendingUp className="h-5 w-5" />}
+            />
+            <MetricCard
+              title="Cancelados"
+              value={(stats.totalOrders - stats.approvedOrders).toString()}
+              change="Pedidos não processados"
+              changeType="negative"
+              icon={<Users className="h-5 w-5" />}
+            />
+          </div>
+        </section>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
