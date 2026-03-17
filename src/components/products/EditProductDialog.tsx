@@ -515,13 +515,24 @@ export default function EditProductDialog({ open, onClose, product, onSave }: Ed
                         {/* Payment Gateway */}
                         <div className="space-y-1">
                             <Label>Gateway de Pagamento *</Label>
-                            <Select value={paymentGateway} onValueChange={(v) => setValue("payment_gateway", v as ProductFormValues["payment_gateway"])}>
+                            <Select value={paymentGateway} onValueChange={(v) => {
+                                setValue("payment_gateway", v as ProductFormValues["payment_gateway"]);
+                                // Auto-switch currency when changing gateway
+                                if (v === 'e2payments') {
+                                    setValue("currency", "MZN");
+                                } else if (currency === 'MZN') {
+                                    setValue("currency", "ZAR");
+                                }
+                            }}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="paystack">💳 Paystack (South Africa/NG/GHS/KES)</SelectItem>
-                                    <SelectItem value="e2payments">💳 E2payments (Mozambique)</SelectItem>
+                                    <SelectItem value="e2payments">🇲🇿 E2payments (Moçambique · MZN)</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {paymentGateway === 'e2payments' && (
+                                <p className="text-xs text-muted-foreground mt-1">💡 Moeda definida automaticamente para <strong>MZN (Metical)</strong></p>
+                            )}
                         </div>
 
                         {/* Language */}
