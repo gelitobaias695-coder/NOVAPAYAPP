@@ -140,30 +140,48 @@ export async function initializePayment({ order_id, phone, network, amount }) {
 
 export async function handleWebhook(body) {
     // E2Payments webhook handler
-    console.log('[E2P Webhook] Payload:', JSON.stringify(body));
+    console.log('[E2P Webhook] Payload received:', JSON.stringify(body));
     
-    const isSuccess = JSON.stringify(body).toLowerCase().includes('completed') || 
+    const bodyStr = JSON.stringify(body).toLowerCase();
+    const isSuccess = bodyStr.includes('completed') || 
+                      bodyStr.includes('successful') ||
                       body.status === 'success' || 
                       body.status === 'COMPLETED' ||
-                      body.output_ResponseCode === 'INS-0';
+                      body.status === 'SUCCESSFUL' ||
+                      body.output_ResponseCode === 'INS-0' ||
+                      body.output_ResponseStatus === 'Successful';
 
-    const reference = body.reference || body.tx_ref || body.transactionReference || body.output_ThirdPartyReference;
+    // Check every possible reference field used by E2P or generic Gateways
+    const reference = body.reference || 
+                      body.tx_ref || 
+                      body.transactionReference || 
+                      body.output_ThirdPartyReference || 
+                      body.thirdPartyReference ||
+                      body.client_reference;
 
     if (isSuccess && reference) {
-        console.log('[E2P Webhook] Success detected. Reference:', reference);
-        // We match by the first 8 characters of the order ID to be safe with truncations
-        await pool.query(
+        console.log('[E2P Webhook] Payment confirmed. Matching reference:', reference);
+        
+        // We match by the first 8 characters of the UUID to handle truncations/formatting changes
+        // Some gateways might return the reference with quotes or extra chars, so we use LIKE
+        const res = await pool.query(
             `UPDATE orders 
              SET status = 'paid', payment_status = 'paid', 
                  payment_method = 'e2payments', 
                  gateway_transaction_id = $1, 
                  updated_at = NOW() 
-             WHERE $2 LIKE '%' || substring(REPLACE(id::text, '-', ''), 1, 8) || '%' AND status != 'paid'`,
-            [body.transaction_id || body.output_TransactionID || null, reference]
+             WHERE REPLACE(id::text, '-', '') LIKE '%' || substring($2, 1, 8) || '%' AND status != 'paid'
+             RETURNING id, customer_email, total_amount`,
+            [body.transaction_id || body.output_TransactionID || body.transactionReference || null, reference]
         );
-        console.log('[E2P Webhook] Order updated if found.');
+        
+        if (res.rowCount > 0) {
+            console.log(`[E2P Webhook] SUCCESS: Order ${res.rows[0].id} updated to paid.`);
+        } else {
+            console.log(`[E2P Webhook] WARNING: Reference ${reference} received but no matching pending order found in database.`);
+        }
     } else {
-        console.log('[E2P Webhook] Not a success or no reference found.');
+        console.log('[E2P Webhook] SKIP: Not a success status or no reference found in payload.');
     }
 }
 
