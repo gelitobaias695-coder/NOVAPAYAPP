@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation, type Language } from "./translations";
 import { AdaptiveImage } from "@/components/ui/adaptive-image";
+import { toast } from "sonner";
 
 const COUNTRIES = [
     { name: "South Africa", code: "+27" },
@@ -221,7 +222,15 @@ export default function CheckoutDigital({ product, initFunnel, initBumps, initRa
 
         } catch (err) {
             console.error('Error in checkout execution', err);
-            alert(err instanceof Error ? err.message : 'Erro ao processar pagamento. Tente novamente.');
+            const msg = err instanceof Error ? err.message : 'Erro ao processar pagamento. Tente novamente.';
+            // Show a friendly toast error instead of the native alert
+            toast.error('Falha no Pagamento', {
+                description: msg.includes('E2Payments')
+                    ? 'Não foi possível processar o pagamento via M-Pesa / e-Mola. Verifique o número de telemóvel e tente novamente.'
+                    : msg,
+                duration: 8000,
+                position: 'top-center',
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -419,16 +428,9 @@ export default function CheckoutDigital({ product, initFunnel, initBumps, initRa
                                         {product.payment_gateway === 'e2payments' ? 'E2payments' : 'Paystack'}
                                     </span>
                                     {product.payment_gateway === 'e2payments' ? (
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm font-bold text-[#1434CB] bg-white">
-                                                VISA
-                                            </span>
-                                            <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm bg-[#41b549] text-white font-bold text-[7px] tracking-tighter">
-                                                M-PESA
-                                            </span>
-                                            <span className="flex items-center justify-center w-[38px] h-[24px] border border-gray-200 rounded text-[10px] shadow-sm font-bold bg-[#ffcc00] text-[#000] text-[8px]">
-                                                MPESA
-                                            </span>
+                                        <div className="flex items-center gap-2">
+                                            <img src="/mpesa_logo.png" alt="M-Pesa" className="h-7 w-7 object-contain rounded-md shadow-sm" />
+                                            <img src="/emola_logo.png" alt="e-Mola" className="h-7 w-7 object-contain rounded-md shadow-sm" />
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-1.5">
@@ -475,18 +477,20 @@ export default function CheckoutDigital({ product, initFunnel, initBumps, initRa
                                             </div>
                                         ) : product.payment_gateway === 'e2payments' ? (
                                             <div className="flex flex-col items-center w-full space-y-4 max-w-xs mx-auto">
-                                                <div className="w-full flex gap-2">
+                                                <div className="w-full flex gap-3">
                                                     <button
-                                                        className={`flex-1 py-2 border rounded-md text-sm font-bold flex flex-col items-center justify-center gap-1 transition-all ${e2pNetwork === 'mpesa' ? 'border-[#41b549] bg-[#41b549]/10 text-[#41b549]' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
+                                                        className={`flex-1 py-3 border-2 rounded-xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${e2pNetwork === 'mpesa' ? 'border-[#e00000] bg-red-50 shadow-red-100' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
                                                         onClick={() => setE2pNetwork('mpesa')}
                                                     >
-                                                        M-Pesa
+                                                        <img src="/mpesa_logo.png" alt="M-Pesa" className="h-10 w-10 object-contain rounded-lg" />
+                                                        <span className={`text-xs font-bold ${e2pNetwork === 'mpesa' ? 'text-[#e00000]' : 'text-gray-500'}`}>M-Pesa</span>
                                                     </button>
                                                     <button
-                                                        className={`flex-1 py-2 border rounded-md text-sm font-bold flex flex-col items-center justify-center gap-1 transition-all ${e2pNetwork === 'emola' ? 'border-[#ffcc00] bg-[#ffcc00]/20 text-[#cca300]' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
+                                                        className={`flex-1 py-3 border-2 rounded-xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${e2pNetwork === 'emola' ? 'border-[#f97316] bg-orange-50 shadow-orange-100' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
                                                         onClick={() => setE2pNetwork('emola')}
                                                     >
-                                                        e-Mola
+                                                        <img src="/emola_logo.png" alt="e-Mola" className="h-10 w-10 object-contain rounded-lg" />
+                                                        <span className={`text-xs font-bold ${e2pNetwork === 'emola' ? 'text-[#f97316]' : 'text-gray-500'}`}>e-Mola</span>
                                                     </button>
                                                 </div>
                                                 <div className="w-full space-y-1 text-left">

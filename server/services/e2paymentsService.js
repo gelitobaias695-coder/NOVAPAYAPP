@@ -98,12 +98,18 @@ export async function initializePayment({ order_id, phone, network, amount }) {
         throw new Error(`Wallet ID for ${network} not configured in settings.`);
     }
 
+    // According to documentation, reference must be a string without SPACES.
+    // We also remove hyphens to be safe and ensure it is a clean string.
+    const reference = order_id.toString().replace(/-/g, '').substring(0, 11);
+    
     const bodyData = {
-        phone: phone.toString(),
+        client_id: settings.client_id, // Mandatory as per documentation Example 06
         amount: amount.toString(),
-        reference: order_id.toString().replace(/-/g, '').substring(0, 10),
-        client_id: settings.client_id
+        phone: phone.toString(),
+        reference: reference
     };
+
+    console.log(`[E2P] Initiating ${network} payment:`, { endpoint, reference, phone, amount });
 
     const resTransaction = await fetch(endpoint, {
         method: 'POST',
@@ -115,43 +121,49 @@ export async function initializePayment({ order_id, phone, network, amount }) {
         body: JSON.stringify(bodyData)
     });
 
+    const responseText = await resTransaction.text();
+    
     if (!resTransaction.ok) {
-        const text = await resTransaction.text();
-        throw new Error(`E2Payments Transaction Error: ${text}`);
+        console.error(`[E2P] ${network} Transaction Error:`, responseText);
+        throw new Error(`E2Payments Transaction Error: ${responseText}`);
     }
 
-    const result = await resTransaction.json();
-    return result;
+    try {
+        const result = JSON.parse(responseText);
+        console.log(`[E2P] ${network} Response:`, result);
+        return result;
+    } catch (e) {
+        console.log(`[E2P] ${network} Raw Response (not JSON):`, responseText);
+        return { message: responseText };
+    }
 }
 
 export async function handleWebhook(body) {
     // E2Payments webhook handler
-    // Documentation says it sends PAYMENT-COMPLETED, PAYMENT-FAILED, etc.
-    // The webhook payload usually contains reference and status.
-    // But we need to see the exact payload. We will just capture the data and update orders for now.
+    console.log('[E2P Webhook] Payload:', JSON.stringify(body));
     
-    // example body structure might have: { reference, status, amount, transaction_id }
-    // As per generic gateways, we try updating the order status to 'paid' if it's successful.
-    
-    // Assuming E2Payments webhook payload has event type and transaction details.
-    console.log('[E2P Webhook]', body);
-    
-    // Try to update order if successful. Without exact doc, matching "COMPLETED" or "successful"
     const isSuccess = JSON.stringify(body).toLowerCase().includes('completed') || 
                       body.status === 'success' || 
-                      body.status === 'COMPLETED';
+                      body.status === 'COMPLETED' ||
+                      body.output_ResponseCode === 'INS-0';
 
-    const reference = body.reference || body.tx_ref || body.transactionReference;
+    const reference = body.reference || body.tx_ref || body.transactionReference || body.output_ThirdPartyReference;
 
     if (isSuccess && reference) {
+        console.log('[E2P Webhook] Success detected. Reference:', reference);
+        // We match by the first 8 characters of the order ID to be safe with truncations
         await pool.query(
             `UPDATE orders 
              SET status = 'paid', payment_status = 'paid', 
                  payment_method = 'e2payments', 
                  gateway_transaction_id = $1, 
                  updated_at = NOW() 
-             WHERE $2 LIKE '%' || substring(REPLACE(id::text, '-', ''), 1, 10) || '%' AND status != 'paid'`,
-            [body.transaction_id || null, reference]
+             WHERE $2 LIKE '%' || substring(REPLACE(id::text, '-', ''), 1, 8) || '%' AND status != 'paid'`,
+            [body.transaction_id || body.output_TransactionID || null, reference]
         );
+        console.log('[E2P Webhook] Order updated if found.');
+    } else {
+        console.log('[E2P Webhook] Not a success or no reference found.');
     }
 }
+
