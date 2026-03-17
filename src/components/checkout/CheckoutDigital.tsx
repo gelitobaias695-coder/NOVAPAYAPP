@@ -496,7 +496,7 @@ export default function CheckoutDigital({ product, initFunnel, initBumps, initRa
                                                 <div className="w-full space-y-1 text-left">
                                                     <Label>N° de Telemóvel ({e2pNetwork === 'mpesa' ? 'M-Pesa' : 'e-Mola'})</Label>
                                                     <Input 
-                                                        placeholder="Ex: 841234567" 
+                                                        placeholder={e2pNetwork === 'mpesa' ? 'Ex: 841234567' : 'Ex: 871234567'} 
                                                         value={e2pPhone} 
                                                         onChange={(e) => setE2pPhone(e.target.value)}
                                                         className="text-center text-lg font-medium tracking-wider"

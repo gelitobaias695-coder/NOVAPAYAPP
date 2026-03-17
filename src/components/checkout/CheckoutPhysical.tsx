@@ -776,7 +776,7 @@ export default function CheckoutPhysical({ product, initFunnel, initBumps, initR
                                                         <div className="w-full space-y-1.5 text-left mt-2">
                                                             <Label className="text-gray-700 font-medium text-sm">N° de Telemóvel ({e2pNetwork === 'mpesa' ? 'M-Pesa' : 'e-Mola'})</Label>
                                                             <Input 
-                                                                placeholder="Ex: 841234567" 
+                                                                placeholder={e2pNetwork === 'mpesa' ? 'Ex: 841234567' : 'Ex: 871234567'} 
                                                                 value={e2pPhone} 
                                                                 onChange={(e) => setE2pPhone(e.target.value)}
                                                                 className="text-center text-lg font-bold tracking-wider h-12 shadow-sm border-gray-300"
