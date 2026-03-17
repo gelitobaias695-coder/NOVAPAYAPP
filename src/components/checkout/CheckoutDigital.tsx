@@ -68,7 +68,7 @@ export default function CheckoutDigital({ product, initFunnel, initBumps, initRa
 
     const [step, setStep] = useState(1);
     const [isSummaryOpen, setIsSummaryOpen] = useState(false);
-    const [form, setForm] = useState({ name: "", email: "", whatsapp: "", phoneCode: "+27" });
+    const [form, setForm] = useState({ name: "", email: "", whatsapp: "", phoneCode: product.currency === 'MZN' ? "+258" : "+27" });
     const [card, setCard] = useState({ number: "", exp: "", cvv: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loadingInfo, setLoadingInfo] = useState(false);
@@ -333,7 +333,7 @@ export default function CheckoutDigital({ product, initFunnel, initBumps, initRa
                                             >
                                                 {COUNTRIES.map(c => <option key={c.code + c.name} value={c.code}>{c.code}</option>)}
                                             </select>
-                                            <Input placeholder="82 123 4567" value={form.whatsapp} onChange={set("whatsapp")} />
+                                            <Input placeholder={product.currency === 'MZN' ? '84 123 4567' : '82 123 4567'} value={form.whatsapp} onChange={set("whatsapp")} />
                                         </div>
                                         <p className="text-[10px] text-green-600 flex items-center gap-1 mt-1">
                                             <CheckCircle className="h-3 w-3" /> {t.whatsappNote}

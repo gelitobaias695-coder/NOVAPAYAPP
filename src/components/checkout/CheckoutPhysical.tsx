@@ -140,7 +140,7 @@ export default function CheckoutPhysical({ product, initFunnel, initBumps, initR
     const [step, setStep] = useState(1);
     const [isSummaryOpen, setIsSummaryOpen] = useState(false);
     const INITIAL_FORM_VALUES = {
-        email: "", phone: "", phoneCode: "+27", firstName: "", lastName: "",
+        email: "", phone: "", phoneCode: product.currency === 'MZN' ? "+258" : "+27", firstName: "", lastName: "",
         address: "", address2: "", city: "", province: "Gauteng", postal: "", country: "South Africa",
     };
 
