@@ -424,9 +424,11 @@ export default function CheckoutDigital({ product, initFunnel, initBumps, initRa
 
                             <div className="border border-[#1773B0] rounded-xl overflow-hidden shadow-sm flex flex-col mb-4">
                                 <div className="bg-white p-4 border-b border-[#1773B0] flex items-center justify-between">
-                                    <span className="text-[15px] font-medium text-gray-900">
-                                        {product.payment_gateway === 'e2payments' ? 'E2payments' : 'Paystack'}
-                                    </span>
+                                    {product.payment_gateway !== 'e2payments' && (
+                                        <span className="text-[15px] font-medium text-gray-900">
+                                            Paystack
+                                        </span>
+                                    )}
                                     {product.payment_gateway === 'e2payments' ? (
                                         <div className="flex items-center gap-2">
                                             <img src="/mpesa_logo.png" alt="M-Pesa" className="h-7 w-7 object-contain rounded-md shadow-sm" />
