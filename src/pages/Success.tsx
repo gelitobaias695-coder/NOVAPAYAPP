@@ -117,11 +117,11 @@ export default function SuccessPage() {
 
                 <div className="space-y-2">
                     <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">
-                        {order.status === 'pending' && isE2P ? "Aguardando Pagamento!" : t.thankYou || "Obrigado!"}
+                        {isE2P ? "Parabéns pela sua compra!" : t.thankYou || "Obrigado!"}
                     </h1>
                     <p className="text-zinc-500 font-medium">
                         {order.status === 'pending' && isE2P 
-                            ? "Por favor, verifique o seu telemóvel as instruções do M-Pesa / e-Mola e insira o seu PIN para concluir a compra." 
+                            ? "Confirme o pagamento no seu telemóvel (M-Pesa/e-Mola) e clique no botão abaixo para acessar o seu produto." 
                             : (t.orderConfirmed?.replace('{id}', order.id?.slice(0, 8)) || `Seu pedido #${order.id?.slice(0, 8)} foi confirmado.`)}
                     </p>
                 </div>
@@ -129,8 +129,8 @@ export default function SuccessPage() {
                 <div className="bg-zinc-50 rounded-xl p-4 text-left space-y-3 border border-zinc-100">
                     <div className="flex justify-between items-center pb-2 border-b border-zinc-200/60">
                         <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">{t.summary || "Resumo"}</span>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
-                            {order.status === 'pending' ? "PENDENTE" : (t.paid || "PAGO")}
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${(order.status === 'pending' && !isE2P) ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
+                            {order.status === 'pending' ? (isE2P ? "PAGO" : "PENDENTE") : (t.paid || "PAGO")}
                         </span>
                     </div>
                     <div className="space-y-2">
